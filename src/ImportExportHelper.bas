@@ -187,7 +187,7 @@ Public Sub CreateTemplateWorkbook()
             ws.Delete
         ElseIf ws.name = "IMPORT" Then
             lastRow = ws.UsedRange.Row + ws.UsedRange.Rows.Count - 1
-            If lastRow > 1 Then ws.Rows("4:" & lastRow).value = ""
+            If lastRow > 1 Then ws.Rows("5:" & lastRow).value = ""
         Else
             lastRow = ws.UsedRange.Row + ws.UsedRange.Rows.Count - 1
             If lastRow > 1 Then ws.Rows("2:" & lastRow).Delete
@@ -297,6 +297,8 @@ Private Function SheetByCode(wb As Workbook, codeName As String) As Worksheet
         If ws.codeName = codeName Then Set SheetByCode = ws: Exit Function
     Next ws
 End Function
+
+
 
 
 

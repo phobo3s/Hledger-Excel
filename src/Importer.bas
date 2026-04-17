@@ -79,7 +79,7 @@ Public Sub ImporterBegin()
         'Put bank description to the side
         If bankDescRange.Cells(i, 1).value = "" Then bankDescRange.Cells(i, 1).value = notesRange.Cells(i, 1).value
         'Check duplicates and fully entered records
-            If CheckDuplicate(datesRange.Cells(i, 1).value, CDbl(amountRange.Cells(i, 1).value), targetWs) = 0 And _
+            If CheckDuplicate(datesRange.Cells(i, 1).value, CDbl(amountRange.Cells(i, 1).value), targetWs, CStr(bankDescRange.Cells(i, 1).value)) = 0 And _
                                                                         (expenseCategoryRange.Cells(i, 1).value = "" Or _
                                                                         expenseCategoryRange.Cells(i, 1).value = "Gider:Bilinmeyen") Then
             'SAME SEARCHING
@@ -134,7 +134,7 @@ Public Sub ImporterBegin()
        
     '>>> DUPLICATE FIND PART
     For i = datesRange.Rows.Count To 1 Step -1
-        If CheckDuplicate(datesRange.Cells(i, 1).value, CDbl(amountRange.Cells(i, 1).value), targetWs) = 0 Then
+        If CheckDuplicate(datesRange.Cells(i, 1).value, CDbl(amountRange.Cells(i, 1).value), targetWs, CStr(bankDescRange.Cells(i, 1).value)) = 0 Then
             'unique record.
         Else
             'duplicate entry found
@@ -155,7 +155,7 @@ Public Sub ImporterBegin()
     Dim reconcileNoteRow As Long
     For i = datesRange.Rows.Count To 1 Step -1
         'REAL Check duplicates!
-        If CheckDuplicate(datesRange.Cells(i, 1).value, CDbl(amountRange.Cells(i, 1).value), targetWs) = 0 Then
+        If CheckDuplicate(datesRange.Cells(i, 1).value, CDbl(amountRange.Cells(i, 1).value), targetWs, CStr(bankDescRange.Cells(i, 1).value)) = 0 Then
         '            '> find start row for yourself
             startRow = 2 'by default it is 2
             Do Until datesRange.Cells(i, 1).value >= targetWs.Cells(startRow, 1).value And targetWs.Cells(startRow, 1).value <> ""
@@ -242,40 +242,50 @@ End Function
 '>> Check Duplicates
 '===================================================
 Private Sub CheckDuplicate_Test()
-    'Debug.Print CheckDuplicate("14.02.2024", CDbl(-114.99), ActiveWorkbook.Worksheets("TEBKrediKartı"))
-    Debug.Print CheckDuplicate("06.01.2023", CDbl(-155), ActiveWorkbook.Worksheets("SheKrediKartı"))
+    Dim ws As Worksheet
+    Set ws = ActiveWorkbook.Worksheets("SheKrediKartı")
+    ' Should return 0 (no match)
+    Debug.Print "Expect 0: " & CheckDuplicate("01.01.2099", CDbl(-100), ws, "TEST")
+    ' Should return 0 (date matches, amount doesn't)
+    Debug.Print "Expect 0: " & CheckDuplicate("06.01.2023", CDbl(-999.99), ws, "")
+    ' Real duplicate: date+amount+desc all match (adjust to a known row in sheet)
+    Debug.Print "Expect >0: " & CheckDuplicate("06.01.2023", CDbl(-155), ws, "")
+    ' KKDF vs BSMV: same date+amount, different desc -> should NOT be duplicate
+    Debug.Print "Expect 0 (diff desc): " & CheckDuplicate("14.02.2024", CDbl(-114.99), ws, "KKDF FARKLI ACIKLAMA")
+    ' Same date+amount+desc -> duplicate
+    Debug.Print "Expect >0 (same desc): " & CheckDuplicate("14.02.2024", CDbl(-58#), ws, "10314 BORNOVA HÜKÜMET KİZMİR TR")
 End Sub
-Private Function CheckDuplicate(chkDate As Variant, chkAmount As Double, targetWs As Worksheet) As Long
-'checks duplicate for 1 and 9th columns same time. if result is zero then value is not a duplicate.
+
+' Returns 0 if not duplicate, row number if duplicate found.
+' Matches on col1=date, col9=amount, col13=bankDesc (if provided).
+Private Function CheckDuplicate(chkDate As Variant, chkAmount As Double, targetWs As Worksheet, Optional chkDesc As String = "") As Long
     CheckDuplicate = 0
-    Dim found As Object
-    Dim found1Arr As Variant
-    Dim found2Arr As Variant
-    Set found = modFindAll64.FindAllOnWorksheets(Nothing, targetWs.name, targetWs.Cells(, 1).EntireColumn.Address, CStr(CDate(chkDate)), xlValues, xlWhole)(0)
-    If found Is Nothing Then Exit Function
-    found1Arr = Split(StripNonDigits(found.Address), ",")
-    Set found = Nothing
-    Set found = modFindAll64.FindAllOnWorksheets(Nothing, targetWs.name, targetWs.Cells(, 9).EntireColumn.Address, chkAmount, xlFormulas2)(0)
-    If found Is Nothing Then Exit Function
-    found2Arr = Split(StripNonDigits(found.Address), ",")
-    Dim result As Long: result = 0
-    Dim val As Variant: val = False
-    If UBound(found2Arr) = -1 Then result = 0: Exit Function
-    For Each val In found2Arr
-        If UBound(Filter(found1Arr, val)) <> -1 Then result = val: Exit For
-    Next val
-    CheckDuplicate = result
-End Function
-Private Function StripNonDigits(str As String) As String
-    Dim result As Variant
-    Dim oReg As Object
-    Set oReg = CreateObject("VBScript.RegExp")
-    With oReg
-        .Pattern = "[A-Z]"
-        .Global = True
-    End With
-    result = oReg.Replace(str, "")
-    StripNonDigits = Replace(result, "$", "")
+    Dim targetDate As Date
+    On Error Resume Next
+    targetDate = CDate(chkDate)
+    If Err.Number <> 0 Then Exit Function
+    On Error GoTo 0
+
+    Dim lastRow As Long
+    lastRow = targetWs.Cells(targetWs.Rows.Count, 1).End(xlUp).Row
+    Dim i As Long
+    For i = 2 To lastRow
+        If targetWs.Cells(i, 1).value <> "" Then
+            Dim cellDate As Date
+            On Error Resume Next
+            cellDate = CDate(targetWs.Cells(i, 1).value)
+            If Err.Number = 0 Then
+                If cellDate = targetDate And targetWs.Cells(i, 9).value = chkAmount Then
+                    If chkDesc = "" Or StrComp(CStr(targetWs.Cells(i, 13).value), chkDesc, vbTextCompare) = 0 Then
+                        CheckDuplicate = i
+                        Exit Function
+                    End If
+                End If
+            End If
+            Err.Clear
+            On Error GoTo 0
+        End If
+    Next i
 End Function
 '===================================================
 '<< Check Duplicates
@@ -310,6 +320,8 @@ End Function
 '===================================================
 '<< Find Commodity Count
 '===================================================
+
+
 
 
 
