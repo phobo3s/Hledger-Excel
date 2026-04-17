@@ -46,8 +46,9 @@ Private Sub BankGetter_FetchAccounts(chrome As stdChrome)
     Dim q As Integer, i As Integer, j As Integer, k As Integer, itm As Variant
 
     With chrome
+        .accMain.PrintDescTexts
         Call .AwaitForAccElement(stdLambda.Create("$1.Name = ""Hesaplar"" and $1.Role = ""ROLE_LINK""")).DoDefaultAction
-        For q = 1 To 3
+        For q = 1 To 4
             Set detailsLinks = Nothing
             Call .AwaitForAccElement(stdLambda.Create("$1.Name like ""Detay"" and $1.Role = ""ROLE_LINK"""))
             Set detailsLinks = .accMain.FindAll(stdLambda.Create("$1.Name = ""Detay"" and $1.Role = ""ROLE_LINK"""))
