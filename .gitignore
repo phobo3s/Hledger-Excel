@@ -6,6 +6,7 @@
 *.ledger
 *.csv
 *.txt
+.claude
 
 # -----------------------------------------------
 # Excel binary -- sayfa ici kisisel veri barindirir
