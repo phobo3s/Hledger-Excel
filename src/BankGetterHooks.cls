@@ -73,7 +73,6 @@ Public Sub Hook_TEB_FetchAccounts(chrome As stdChrome, p1 As String, p2 As Strin
             Call .AwaitForAccElement(stdLambda.Create("$1.Name = ""Hesaplar"" and $1.Role = ""ROLE_LINK""")).DoDefaultAction
         Next q
         Call .AwaitForAccElement(stdLambda.Create("$1.Name = ""Anasayfa"" and $1.Role = ""ROLE_LINK""")).DoDefaultAction
-        ActiveCell.Cells(ActiveSheet.Rows.Count - 1, ActiveCell.Column - 1).End(xlUp).offset(1, 0).Select
     End With
     LogManager.LogInfo "Hook_TEB_FetchAccounts: " & accountCount & " accounts fetched"
 End Sub

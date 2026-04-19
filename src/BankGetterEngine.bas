@@ -67,9 +67,11 @@ Public Sub RunBank(bankID As String)
 
     ExecuteSteps steps, state, 0, UBound(steps)
 
-    ws.Range("B2").Select
-    LogManager.LogInfo "=== BankGetterEngine: '" & bankID & "' completed ==="
-    MsgBox "bitti", vbInformation, "BankGetterEngine"
+    FormatBankInfo ws, state.originCell, state.writeRow
+
+    ws.Range("B1").Select
+    LogManager.LogInfo "=== BankGetterEngine: '" & bankID & "' completed. " & state.writeRow & " rows. ==="
+    MsgBox "bitti (" & state.writeRow & " işlem)", vbInformation, "BankGetterEngine"
     Exit Sub
 
 ErrorHandler:
@@ -283,11 +285,56 @@ Private Sub ExecCallHook(st As StepRow, state As EngineState)
         LogManager.LogWarning "CALL_HOOK: HookName is empty"
         Exit Sub
     End If
+    ' Position ActiveCell so hooks that write via ActiveCell land on the correct row
+    state.originCell.offset(state.writeRow, 0).Select
     On Error GoTo HookError
     CallByName BankGetterHooks, st.HookName, VbMethod, state.chrome, st.Param1, st.Param2, st.Param3
+    SyncWriteRow state  ' Hook may have written rows — re-scan to find new position
     Exit Sub
 HookError:
     LogManager.LogError "CALL_HOOK '" & st.HookName & "' failed: " & Err.Description
+End Sub
+
+' Scans down from originCell to find how many rows have been written (date col is offset 1)
+Private Sub SyncWriteRow(state As EngineState)
+    Dim r As Long
+    Do While Len(Trim(CStr(state.originCell.offset(r, 1).value))) > 0
+        r = r + 1
+    Loop
+    state.writeRow = r
+End Sub
+
+' Adds headers, sorts by date descending, and auto-fits Bank_Info
+Private Sub FormatBankInfo(ws As Worksheet, originCell As Range, dataRows As Long)
+    If dataRows = 0 Then Exit Sub
+
+    Dim hRow As Long
+    hRow = originCell.Row - 1
+    Dim hCol As Long
+    hCol = originCell.Column
+
+    With ws
+        .Cells(hRow, hCol).value = "Hesap"
+        .Cells(hRow, hCol + 1).value = "Tarih"
+        .Cells(hRow, hCol + 2).value = "A" & ChrW(231) & ChrW(305) & "klama"
+        .Cells(hRow, hCol + 3).value = "Tutar"
+        .Cells(hRow, hCol + 4).value = "Ham Veri"
+        .Rows(hRow).Font.Bold = True
+        .Rows(hRow).Interior.Color = RGB(68, 114, 196)
+        .Rows(hRow).Font.Color = RGB(255, 255, 255)
+    End With
+
+    ' Sort data range by date (offset 1) descending — newest first
+    Dim dataRange As Range
+    Set dataRange = originCell.Resize(dataRows, 5)
+    dataRange.Sort Key1:=originCell.offset(0, 1), Order1:=xlDescending, Header:=xlNo
+
+    ws.Columns(hCol).ColumnWidth = 22
+    ws.Columns(hCol + 1).NumberFormat = "dd.mm.yyyy"
+    ws.Columns(hCol + 1).ColumnWidth = 12
+    ws.Columns(hCol + 2).ColumnWidth = 42
+    ws.Columns(hCol + 3).ColumnWidth = 14
+    ws.Columns(hCol + 4).ColumnWidth = 30
 End Sub
 
 Private Sub ExecResetCursor(st As StepRow, state As EngineState)

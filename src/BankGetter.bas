@@ -1,4 +1,4 @@
-﻿Attribute VB_Name = "BankGetter"
+Attribute VB_Name = "BankGetter"
 Option Explicit
 
 ' Entry point for the data-driven engine. bankID must match a BankID in the BANKS sheet.
@@ -7,13 +7,23 @@ Public Sub BankGetterRun(Optional bankID As String = "TEB")
     BankGetterEngine.RunBank bankID
 End Sub
 
+' Module-level state shared across the three fetch helpers
+Private gBankWs As Worksheet
+Private gBankRow As Long
+
+Private Const BANK_COL_ACCOUNT As Integer = 2  ' B
+Private Const BANK_COL_DATE    As Integer = 3  ' C
+Private Const BANK_COL_DESC    As Integer = 4  ' D
+Private Const BANK_COL_AMOUNT  As Integer = 5  ' E
+Private Const BANK_COL_RAW     As Integer = 6  ' F
+
 Public Sub BankGetterTEB()
     LogManager.LogInfo "=== BankGetter: TEB Data Fetch Started ==="
     On Error GoTo ErrorHandler
 
-    Application.ActiveWorkbook.Worksheets("Bank_Info").activate
-    ActiveSheet.Cells.Delete
-    ActiveSheet.Range("b2").Select
+    Set gBankWs = Application.ActiveWorkbook.Worksheets("Bank_Info")
+    gBankWs.Cells.Delete
+    gBankRow = 2
 
     Dim chrome As stdChrome
     Dim hwnd As LongPtr
@@ -31,9 +41,11 @@ Public Sub BankGetterTEB()
     LogManager.LogInfo "Fetching Credit Card Transactions..."
     Call BankGetter_FetchCards(chrome)
 
-    ActiveSheet.Range("b2").Select
-    LogManager.LogInfo "BankGetter: TEB Data Fetch Completed"
-    MsgBox "bitti", vbInformation, "BankGetter"
+    SortAndFormatBankInfo
+
+    gBankWs.Range("B1").Select
+    LogManager.LogInfo "BankGetter: TEB Data Fetch Completed. " & (gBankRow - 2) & " rows."
+    MsgBox "bitti (" & (gBankRow - 2) & " işlem)", vbInformation, "BankGetter"
     Exit Sub
 
 ErrorHandler:
@@ -47,12 +59,13 @@ Private Sub BankGetter_FetchAccounts(chrome As stdChrome)
     Dim detailsLinks As Collection
     Dim detailItem As Variant
     Dim detailNum As Integer
-    Dim childi As Variant
+    Dim childi As Variant, itm As Variant
+    Dim q As Integer, j As Integer
     Dim skipLineCount As Integer
-    Dim q As Integer, i As Integer, j As Integer, k As Integer, itm As Variant
+    Dim dateVal As Date, descVal As String, amountVal As Double
+    Dim hasDate As Boolean
 
     With chrome
-        .accMain.PrintDescTexts
         Call .AwaitForAccElement(stdLambda.Create("$1.Name = ""Hesaplar"" and $1.Role = ""ROLE_LINK""")).DoDefaultAction
         For q = 1 To 4
             Set detailsLinks = Nothing
@@ -64,44 +77,44 @@ Private Sub BankGetter_FetchAccounts(chrome As stdChrome)
             Call .AwaitForAccElement(stdLambda.Create("$1.Name like ""Hesap " & ChrW(304) & ChrW(351) & "lemleri"" and $1.Role = ""ROLE_LINK""")).DoDefaultAction
             Call .AwaitForAccElement(stdLambda.Create("$1.Name like ""Hesap Hareketleri"" and $1.Role = ""ROLE_LINK""")).DoDefaultAction
             Call .AwaitForAccElement(stdLambda.Create("$1.Name like ""1 Ay"" and $1.Role = ""ROLE_LINK""")).DoDefaultAction
-
             Call .AwaitForAccElement(stdLambda.Create("$1.Description like ""Showing * entries"" and $1.Role = ""ROLE_TABLE"""))
+
             skipLineCount = 1
-            i = -1
-            j = 0
             For Each childi In .accMain.FindFirst(stdLambda.Create("$1.Description like ""Showing * entries"" and $1.Role = ""ROLE_TABLE""")).children
-                i = i + 1
                 If skipLineCount > 0 Then
-                    i = i - 1
                     skipLineCount = skipLineCount - 1
                 Else
+                    hasDate = False: j = 0: descVal = "": amountVal = 0
                     For Each itm In childi.children
                         j = j + 1
-                        If j = 1 Then
-                            k = 1
-                            On Error Resume Next
-                            ActiveCell.offset(i, k).value = CDate(Replace(Replace(itm.children.item(1).name, "/", "."), "(*)", ""))
-                            If Err.Number <> 0 Then
-                                j = j - 1: Err.Clear
-                            Else
-                                ActiveCell.offset(i, k - 1).value = "Hesap-" & detailNum
-                            End If
-                            On Error GoTo 0
-                        ElseIf j = 4 Then
-                            k = 2
-                            ActiveCell.offset(i, k).value = itm.children.item(1).name
-                        ElseIf j = 5 Then
-                            k = 3
-                            ActiveCell.offset(i, k).value = CDbl(itm.children.item(1).name)
-                        End If
+                        Dim cellText1 As String
+                        cellText1 = SafeChildText(itm)
+                        Select Case j
+                            Case 1
+                                On Error Resume Next
+                                dateVal = CDate(Replace(Replace(cellText1, "/", "."), "(*)", ""))
+                                hasDate = (Err.Number = 0): Err.Clear
+                                On Error GoTo 0
+                            Case 4: descVal = cellText1
+                            Case 5
+                                On Error Resume Next
+                                amountVal = CDbl(cellText1)
+                                If Err.Number <> 0 Then amountVal = 0: Err.Clear
+                                On Error GoTo 0
+                        End Select
                     Next itm
-                    j = 0
+                    If hasDate Then
+                        gBankWs.Cells(gBankRow, BANK_COL_ACCOUNT).value = "Hesap-" & detailNum
+                        gBankWs.Cells(gBankRow, BANK_COL_DATE).value = dateVal
+                        gBankWs.Cells(gBankRow, BANK_COL_DESC).value = descVal
+                        gBankWs.Cells(gBankRow, BANK_COL_AMOUNT).value = amountVal
+                        gBankRow = gBankRow + 1
+                    End If
                 End If
             Next childi
             Call .AwaitForAccElement(stdLambda.Create("$1.Name = ""Hesaplar"" and $1.Role = ""ROLE_LINK""")).DoDefaultAction
         Next q
         Call .AwaitForAccElement(stdLambda.Create("$1.Name = ""Anasayfa"" and $1.Role = ""ROLE_LINK""")).DoDefaultAction
-        ActiveCell.Cells(ActiveSheet.Rows.Count - 1, ActiveCell.Column - 1).End(xlUp).offset(1, 0).Select
     End With
 
     LogManager.LogInfo "Account transactions fetched"
@@ -115,9 +128,11 @@ Private Sub BankGetter_FetchInvestments(chrome As stdChrome)
 
     Dim dateStr2 As String
     Dim childi As Variant, itm As Variant
-    Dim i As Integer, j As Integer, k As Integer, skipLineCount As Integer
+    Dim skipLineCount As Integer, j As Integer
     Dim investmentTable As stdAcc
     Dim exitLoop As Boolean
+    Dim dateVal As Date, descVal As String, amountVal As Double
+    Dim hasDate As Boolean
 
     With chrome
         Call .AwaitForAccElement(stdLambda.Create("$1.Name = ""Yat" & ChrW(305) & "r" & ChrW(305) & "mlar"" and $1.Role = ""ROLE_LINK""")).DoDefaultAction
@@ -142,35 +157,41 @@ Private Sub BankGetter_FetchInvestments(chrome As stdChrome)
         chrome.AwaitForAccElement(stdLambda.Create("$1.Name = ""Cari Hesap"" and $1.Role = ""ROLE_CELL""")).AwaitForElement(stdLambda.Create("$1.Name = """" $1.Role = ""ROLE_CHECKBUTTON""")).parent.children.item(2).DoDefaultAction
         Call .AwaitForAccElement(stdLambda.Create("$1.Name = ""Devam"" and $1.Role = ""ROLE_PUSHBUTTON""")).DoDefaultAction
 
-        i = -1: j = 0: exitLoop = False
+        exitLoop = False
         Do Until exitLoop
             If Not .accMain.AwaitForElement(stdLambda.Create("$1.Description like ""Showing * entries"" and $1.Role = ""ROLE_TABLE"""), , 10) Is Nothing Then
                 Set investmentTable = .accMain.FindFirst(stdLambda.Create("$1.Description like ""Showing * entries"" and $1.Role = ""ROLE_TABLE"""))
                 skipLineCount = 1
                 For Each childi In investmentTable.children
-                    i = i + 1
                     If skipLineCount > 0 Then
-                        i = i - 1: skipLineCount = skipLineCount - 1
+                        skipLineCount = skipLineCount - 1
                     Else
+                        hasDate = False: j = 0: descVal = "": amountVal = 0
                         For Each itm In childi.children
                             j = j + 1
-                            If j = 1 Then
-                                k = 1
-                                On Error Resume Next
-                                ActiveCell.offset(i, k).value = CDate(Replace(Replace(itm.children.item(1).name, "/", "."), "(*)", ""))
-                                If Err.Number <> 0 Then
-                                    j = j - 1: Err.Clear
-                                Else
-                                    ActiveCell.offset(i, k - 1).value = "TEB Yat" & ChrW(305) & "r" & ChrW(305) & "m Hesab" & ChrW(305)
-                                End If
-                                On Error GoTo 0
-                            ElseIf j = 2 Then
-                                k = 3: ActiveCell.offset(i, k).value = CDbl(itm.children.item(1).name)
-                            ElseIf j = 4 Then
-                                k = 2: ActiveCell.offset(i, k).value = itm.children.item(1).name
-                            End If
+                            Dim cellText2 As String
+                            cellText2 = SafeChildText(itm)
+                            Select Case j
+                                Case 1
+                                    On Error Resume Next
+                                    dateVal = CDate(Replace(Replace(cellText2, "/", "."), "(*)", ""))
+                                    hasDate = (Err.Number = 0): Err.Clear
+                                    On Error GoTo 0
+                                Case 2
+                                    On Error Resume Next
+                                    amountVal = CDbl(cellText2)
+                                    If Err.Number <> 0 Then amountVal = 0: Err.Clear
+                                    On Error GoTo 0
+                                Case 4: descVal = cellText2
+                            End Select
                         Next itm
-                        j = 0
+                        If hasDate Then
+                            gBankWs.Cells(gBankRow, BANK_COL_ACCOUNT).value = "TEB Yat" & ChrW(305) & "r" & ChrW(305) & "m Hesab" & ChrW(305)
+                            gBankWs.Cells(gBankRow, BANK_COL_DATE).value = dateVal
+                            gBankWs.Cells(gBankRow, BANK_COL_DESC).value = descVal
+                            gBankWs.Cells(gBankRow, BANK_COL_AMOUNT).value = amountVal
+                            gBankRow = gBankRow + 1
+                        End If
                     End If
                 Next childi
             End If
@@ -182,7 +203,6 @@ Private Sub BankGetter_FetchInvestments(chrome As stdChrome)
         Loop
 
         Call .AwaitForAccElement(stdLambda.Create("$1.Name = ""Anasayfa"" and $1.Role = ""ROLE_LINK""")).DoDefaultAction
-        ActiveCell.End(xlUp).Select
     End With
 
     LogManager.LogInfo "Investment transactions fetched"
@@ -198,16 +218,15 @@ Private Sub BankGetter_FetchCards(chrome As stdChrome)
     Dim cardName As Variant
     Dim cardTable As stdAcc
     Dim childi As Variant, itm As Variant
-    Dim i As Integer, j As Integer, k As Integer
-    Dim skipLineCount As Integer, detailNum As Integer
+    Dim skipLineCount As Integer, detailNum As Integer, j As Integer
+    Dim dateVal As Date, descVal As String, amountVal As Double, rawVal As String
+    Dim hasDate As Boolean
 
     cardsArr = Array("TEB BONUS CARD", "TEB SHE CARD")
 
     With chrome
-        ActiveCell.offset(0, 5).Select
         Call .AwaitForAccElement(stdLambda.Create("$1.Name = ""Kartlar"" and $1.Role = ""ROLE_LINK""")).DoDefaultAction
 
-        i = -1: j = 0: detailNum = 0
         For Each cardName In cardsArr
             detailNum = detailNum + 1
             Call .accMain.AwaitForElement(stdLambda.Create("$1.Name = """ & cardName & """ and $1.Role = ""ROLE_LINK""")).DoDefaultAction
@@ -216,44 +235,42 @@ Private Sub BankGetter_FetchCards(chrome As stdChrome)
                 Set cardTable = .accMain.FindFirst(stdLambda.Create("$1.Description like ""Showing * entries"" and $1.Role = ""ROLE_TABLE"""))
                 skipLineCount = 2
                 For Each childi In cardTable.children
-                    i = i + 1
                     If skipLineCount > 0 Then
-                        i = i - 1: skipLineCount = skipLineCount - 1
+                        skipLineCount = skipLineCount - 1
                     Else
+                        hasDate = False: j = 0: descVal = "": amountVal = 0: rawVal = ""
                         For Each itm In childi.children
                             j = j + 1
-                            If j = 1 Then
-                                k = 1
-                                ActiveCell.offset(i, k).value = Replace(Replace(itm.children.item(1).name, "/", "."), "(*)", "")
-                                On Error Resume Next
-                                ActiveCell.offset(i, k).value = CDate(ActiveCell.offset(i, k).value)
-                                If Err.Number <> 0 And i <> 1 Then
-                                    Err.Clear
-                                    ActiveCell.offset(i, k).value = ""
-                                    ActiveCell.offset(0, 5).Select
-                                    ActiveCell.offset(0, k).value = Replace(Replace(itm.children.item(1).name, "/", "."), "(*)", "")
-                                    i = -1
-                                ElseIf Err.Number <> 0 Then
-                                    Err.Clear
-                                End If
-                                On Error GoTo 0
-                                ActiveCell.offset(i, k - 1).value = "Kart-" & cardName
-                            ElseIf j = 2 Then
-                                k = 2: ActiveCell.offset(i, k).value = itm.children.item(1).name
-                            ElseIf j = 4 Then
-                                k = 3: ActiveCell.offset(i, k).value = -1 * CDbl(itm.children.item(1).name)
-                            ElseIf j = 5 Then
-                                k = 4: ActiveCell.offset(i, k).value = "'" & itm.name
-                            End If
+                            Dim cellText3 As String
+                            cellText3 = SafeChildText(itm)
+                            Select Case j
+                                Case 1
+                                    On Error Resume Next
+                                    dateVal = CDate(Replace(Replace(cellText3, "/", "."), "(*)", ""))
+                                    hasDate = (Err.Number = 0): Err.Clear
+                                    On Error GoTo 0
+                                Case 2: descVal = cellText3
+                                Case 4
+                                    On Error Resume Next
+                                    amountVal = -1 * CDbl(cellText3)
+                                    If Err.Number <> 0 Then amountVal = 0: Err.Clear
+                                    On Error GoTo 0
+                                Case 5: rawVal = cellText3
+                            End Select
                         Next itm
-                        j = 0
+                        If hasDate Then
+                            gBankWs.Cells(gBankRow, BANK_COL_ACCOUNT).value = "Kart-" & cardName
+                            gBankWs.Cells(gBankRow, BANK_COL_DATE).value = dateVal
+                            gBankWs.Cells(gBankRow, BANK_COL_DESC).value = descVal
+                            gBankWs.Cells(gBankRow, BANK_COL_AMOUNT).value = amountVal
+                            If Len(rawVal) > 0 Then gBankWs.Cells(gBankRow, BANK_COL_RAW).value = "'" & rawVal
+                            gBankRow = gBankRow + 1
+                        End If
                     End If
                 Next childi
             End If
 
             Call .AwaitForAccElement(stdLambda.Create("$1.Name = ""Kartlar"" and $1.Role = ""ROLE_LINK""")).DoDefaultAction
-            i = -1
-            ActiveCell.offset(0, 5).Select
         Next cardName
 
         Call .AwaitForAccElement(stdLambda.Create("$1.Name = ""Anasayfa"" and $1.Role = ""ROLE_LINK""")).DoDefaultAction
@@ -265,19 +282,52 @@ ErrorHandler:
     LogManager.LogError "BankGetter_FetchCards failed: " & Err.Description
 End Sub
 
+Private Sub SortAndFormatBankInfo()
+    Dim lastRow As Long
+    lastRow = gBankRow - 1
+    If lastRow < 2 Then Exit Sub
+
+    ' Headers
+    With gBankWs
+        .Cells(1, BANK_COL_ACCOUNT).value = "Hesap"
+        .Cells(1, BANK_COL_DATE).value = "Tarih"
+        .Cells(1, BANK_COL_DESC).value = "A" & ChrW(231) & ChrW(305) & "klama"
+        .Cells(1, BANK_COL_AMOUNT).value = "Tutar"
+        .Cells(1, BANK_COL_RAW).value = "Ham Veri"
+        .Rows(1).Font.Bold = True
+        .Rows(1).Interior.Color = RGB(68, 114, 196)
+        .Rows(1).Font.Color = RGB(255, 255, 255)
+    End With
+
+    ' Sort by date descending (newest first)
+    Dim dataRange As Range
+    Set dataRange = gBankWs.Range(gBankWs.Cells(2, BANK_COL_ACCOUNT), _
+                                   gBankWs.Cells(lastRow, BANK_COL_RAW))
+    dataRange.Sort Key1:=gBankWs.Cells(2, BANK_COL_DATE), _
+                   Order1:=xlDescending, Header:=xlNo
+
+    ' Format date column
+    gBankWs.Columns(BANK_COL_DATE).NumberFormat = "dd.mm.yyyy"
+
+    ' AutoFit
+    gBankWs.Columns(BANK_COL_ACCOUNT).ColumnWidth = 22
+    gBankWs.Columns(BANK_COL_DATE).ColumnWidth = 12
+    gBankWs.Columns(BANK_COL_DESC).ColumnWidth = 42
+    gBankWs.Columns(BANK_COL_AMOUNT).ColumnWidth = 14
+    gBankWs.Columns(BANK_COL_RAW).ColumnWidth = 30
+End Sub
+
+' Safely reads the display text of an accessibility element's first child
+Private Function SafeChildText(itm As Variant) As String
+    On Error Resume Next
+    SafeChildText = itm.children.item(1).name
+    If Err.Number <> 0 Then SafeChildText = itm.name: Err.Clear
+    On Error GoTo 0
+End Function
+
 Private Function CastMonthName(monthNum As Integer) As String
     CastMonthName = Array("Ocak", ChrW(350) & "ubat", "Mart", "Nisan", "May" & ChrW(305) & "s", _
                           "Haziran", "Temmuz", "A" & ChrW(287) & "ustos", _
                           "Eyl" & ChrW(252) & "l", "Ekim", _
                           "Kas" & ChrW(305) & "m", "Aral" & ChrW(305) & "k")(monthNum - 1)
 End Function
-
-
-
-
-
-
-
-
-
-
