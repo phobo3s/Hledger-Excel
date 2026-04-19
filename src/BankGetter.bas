@@ -9,13 +9,16 @@ End Sub
 
 ' Module-level state shared across the three fetch helpers
 Private gBankWs As Worksheet
-Private gBankRow As Long
+Private gBankRow As Long       ' accounts + investments bölümü (B sütunu)
+Private gCardCol As Long       ' aktif kartın başlangıç sütunu (G, L, Q...)
+Private gCardRow As Long       ' aktif kartın aktif satırı
 
 Private Const BANK_COL_ACCOUNT As Integer = 2  ' B
 Private Const BANK_COL_DATE    As Integer = 3  ' C
 Private Const BANK_COL_DESC    As Integer = 4  ' D
 Private Const BANK_COL_AMOUNT  As Integer = 5  ' E
 Private Const BANK_COL_RAW     As Integer = 6  ' F
+Private Const CARD_COL_OFFSET  As Integer = 5  ' Her kart 5 sütun sağa
 
 Public Sub BankGetterTEB()
     LogManager.LogInfo "=== BankGetter: TEB Data Fetch Started ==="
@@ -24,6 +27,8 @@ Public Sub BankGetterTEB()
     Set gBankWs = Application.ActiveWorkbook.Worksheets("Bank_Info")
     gBankWs.Cells.Delete
     gBankRow = 2
+    gCardCol = BANK_COL_ACCOUNT + CARD_COL_OFFSET  ' G (7) — ilk kart
+    gCardRow = 2
 
     Dim chrome As stdChrome
     Dim hwnd As LongPtr
@@ -229,6 +234,7 @@ Private Sub BankGetter_FetchCards(chrome As stdChrome)
 
         For Each cardName In cardsArr
             detailNum = detailNum + 1
+            gCardRow = 2  ' her kart kendi bloğunda row 2'den başlar
             Call .accMain.AwaitForElement(stdLambda.Create("$1.Name = """ & cardName & """ and $1.Role = ""ROLE_LINK""")).DoDefaultAction
 
             If Not .accMain.AwaitForElement(stdLambda.Create("$1.Description like ""Showing * entries"" and $1.Role = ""ROLE_TABLE"""), , 10) Is Nothing Then
@@ -259,18 +265,19 @@ Private Sub BankGetter_FetchCards(chrome As stdChrome)
                             End Select
                         Next itm
                         If hasDate Then
-                            gBankWs.Cells(gBankRow, BANK_COL_ACCOUNT).value = "Kart-" & cardName
-                            gBankWs.Cells(gBankRow, BANK_COL_DATE).value = dateVal
-                            gBankWs.Cells(gBankRow, BANK_COL_DESC).value = descVal
-                            gBankWs.Cells(gBankRow, BANK_COL_AMOUNT).value = amountVal
-                            If Len(rawVal) > 0 Then gBankWs.Cells(gBankRow, BANK_COL_RAW).value = "'" & rawVal
-                            gBankRow = gBankRow + 1
+                            gBankWs.Cells(gCardRow, gCardCol).value = "Kart-" & cardName
+                            gBankWs.Cells(gCardRow, gCardCol + 1).value = dateVal
+                            gBankWs.Cells(gCardRow, gCardCol + 2).value = descVal
+                            gBankWs.Cells(gCardRow, gCardCol + 3).value = amountVal
+                            If Len(rawVal) > 0 Then gBankWs.Cells(gCardRow, gCardCol + 4).value = "'" & rawVal
+                            gCardRow = gCardRow + 1
                         End If
                     End If
                 Next childi
             End If
 
             Call .AwaitForAccElement(stdLambda.Create("$1.Name = ""Kartlar"" and $1.Role = ""ROLE_LINK""")).DoDefaultAction
+            gCardCol = gCardCol + CARD_COL_OFFSET  ' sonraki kart için 5 sütun sağa
         Next cardName
 
         Call .AwaitForAccElement(stdLambda.Create("$1.Name = ""Anasayfa"" and $1.Role = ""ROLE_LINK""")).DoDefaultAction
@@ -283,38 +290,61 @@ ErrorHandler:
 End Sub
 
 Private Sub SortAndFormatBankInfo()
-    Dim lastRow As Long
-    lastRow = gBankRow - 1
-    If lastRow < 2 Then Exit Sub
+    ' --- Hesaplar + Yatırımlar bölümü (B-F) ---
+    Dim accLastRow As Long
+    accLastRow = gBankRow - 1
+    If accLastRow >= 2 Then
+        FormatSection BANK_COL_ACCOUNT, accLastRow, "Hesap", "Tarih", _
+                      "A" & ChrW(231) & ChrW(305) & "klama", "Tutar", ""
+    End If
 
-    ' Headers
+    ' --- Kart bölümleri (G-K, L-P, ...) ---
+    Dim col As Long
+    col = BANK_COL_ACCOUNT + CARD_COL_OFFSET  ' G (7) — ilk kart
+    Do While col < gCardCol  ' gCardCol bir sonraki boş karta işaret eder
+        Dim cardLastRow As Long
+        cardLastRow = gBankWs.Cells(gBankWs.Rows.Count, col + 1).End(xlUp).Row
+        If cardLastRow >= 2 Then
+            Dim cardLabel As String
+            cardLabel = gBankWs.Cells(2, col).value  ' "Kart-TEB BONUS CARD" vb.
+            FormatSection col, cardLastRow, cardLabel, "Tarih", _
+                          "A" & ChrW(231) & ChrW(305) & "klama", "Tutar", "Ham Veri"
+        End If
+        col = col + CARD_COL_OFFSET
+    Loop
+End Sub
+
+Private Sub FormatSection(baseCol As Long, lastRow As Long, _
+                           hAccount As String, hDate As String, _
+                           hDesc As String, hAmount As String, hRaw As String)
+    ' Başlık satırı
     With gBankWs
-        .Cells(1, BANK_COL_ACCOUNT).value = "Hesap"
-        .Cells(1, BANK_COL_DATE).value = "Tarih"
-        .Cells(1, BANK_COL_DESC).value = "A" & ChrW(231) & ChrW(305) & "klama"
-        .Cells(1, BANK_COL_AMOUNT).value = "Tutar"
-        .Cells(1, BANK_COL_RAW).value = "Ham Veri"
-        .Rows(1).Font.Bold = True
-        .Rows(1).Interior.Color = RGB(68, 114, 196)
-        .Rows(1).Font.Color = RGB(255, 255, 255)
+        .Cells(1, baseCol).value = hAccount
+        .Cells(1, baseCol + 1).value = hDate
+        .Cells(1, baseCol + 2).value = hDesc
+        .Cells(1, baseCol + 3).value = hAmount
+        If Len(hRaw) > 0 Then .Cells(1, baseCol + 4).value = hRaw
+        With .Range(.Cells(1, baseCol), .Cells(1, baseCol + 4))
+            .Font.Bold = True
+            .Interior.Color = RGB(68, 114, 196)
+            .Font.Color = RGB(255, 255, 255)
+        End With
     End With
 
-    ' Sort by date descending (newest first)
+    ' Tarihe göre azalan sıralama (en yeni üstte)
     Dim dataRange As Range
-    Set dataRange = gBankWs.Range(gBankWs.Cells(2, BANK_COL_ACCOUNT), _
-                                   gBankWs.Cells(lastRow, BANK_COL_RAW))
-    dataRange.Sort Key1:=gBankWs.Cells(2, BANK_COL_DATE), _
+    Set dataRange = gBankWs.Range(gBankWs.Cells(2, baseCol), _
+                                   gBankWs.Cells(lastRow, baseCol + 4))
+    dataRange.Sort Key1:=gBankWs.Cells(2, baseCol + 1), _
                    Order1:=xlDescending, Header:=xlNo
 
-    ' Format date column
-    gBankWs.Columns(BANK_COL_DATE).NumberFormat = "dd.mm.yyyy"
-
-    ' AutoFit
-    gBankWs.Columns(BANK_COL_ACCOUNT).ColumnWidth = 22
-    gBankWs.Columns(BANK_COL_DATE).ColumnWidth = 12
-    gBankWs.Columns(BANK_COL_DESC).ColumnWidth = 42
-    gBankWs.Columns(BANK_COL_AMOUNT).ColumnWidth = 14
-    gBankWs.Columns(BANK_COL_RAW).ColumnWidth = 30
+    ' Tarih formatı ve sütun genişlikleri
+    gBankWs.Columns(baseCol + 1).NumberFormat = "dd.mm.yyyy"
+    gBankWs.Columns(baseCol).ColumnWidth = 22
+    gBankWs.Columns(baseCol + 1).ColumnWidth = 12
+    gBankWs.Columns(baseCol + 2).ColumnWidth = 42
+    gBankWs.Columns(baseCol + 3).ColumnWidth = 14
+    If Len(hRaw) > 0 Then gBankWs.Columns(baseCol + 4).ColumnWidth = 30
 End Sub
 
 ' Safely reads the display text of an accessibility element's first child

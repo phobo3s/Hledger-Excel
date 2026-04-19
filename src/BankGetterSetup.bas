@@ -89,7 +89,9 @@ Private Sub PopulateTEB(ws As Worksheet)
     WriteStep ws, r, "TEB", 220, "CLICK", "$1.Name = ""Anasayfa"" and $1.Role = ""ROLE_LINK""", "", "", "", "", 0, 0, 0, 0, 0, 0, "", "", "Return home"
     r = r + 1
 
-    ' === FETCH CREDIT CARDS (same columns as accounts/investments) ===
+    ' === FETCH CREDIT CARDS — her kart ayrı sütun bloğunda (G, L, Q...) ===
+    WriteStep ws, r, "TEB", 300, "RESET_CURSOR", "", "0", "5", "", "", 0, 0, 0, 0, 0, 0, "", "", "Kart bölümüne geç: originCell B2'den G2'ye"
+    r = r + 1
     WriteStep ws, r, "TEB", 310, "CLICK", "$1.Name = ""Kartlar"" and $1.Role = ""ROLE_LINK""", "", "", "", "", 0, 0, 0, 0, 0, 0, "", "", "Navigate to Cards section"
     r = r + 1
     WriteStep ws, r, "TEB", 320, "LOOP_FOR_EACH", "", "TEB BONUS CARD,TEB SHE CARD", "", "", "", 0, 0, 0, 0, 0, 0, "CARDS", "", "Iterate over card names"
@@ -100,9 +102,11 @@ Private Sub PopulateTEB(ws As Worksheet)
     r = r + 1
     WriteStep ws, r, "TEB", 350, "CLICK", "$1.Name = ""Kartlar"" and $1.Role = ""ROLE_LINK""", "", "", "", "", 0, 0, 0, 0, 0, 0, "", "", "Back to cards list"
     r = r + 1
-    WriteStep ws, r, "TEB", 360, "LOOP_END", "", "", "", "", "", 0, 0, 0, 0, 0, 0, "CARDS", "", "Next card iteration"
+    WriteStep ws, r, "TEB", 360, "RESET_CURSOR", "", "0", "5", "", "", 0, 0, 0, 0, 0, 0, "CARDS", "", "Sonraki kart için 5 sütun sağa"
     r = r + 1
-    WriteStep ws, r, "TEB", 370, "CLICK", "$1.Name = ""Anasayfa"" and $1.Role = ""ROLE_LINK""", "", "", "", "", 0, 0, 0, 0, 0, 0, "", "", "Return home"
+    WriteStep ws, r, "TEB", 370, "LOOP_END", "", "", "", "", "", 0, 0, 0, 0, 0, 0, "CARDS", "", "Next card iteration"
+    r = r + 1
+    WriteStep ws, r, "TEB", 380, "CLICK", "$1.Name = ""Anasayfa"" and $1.Role = ""ROLE_LINK""", "", "", "", "", 0, 0, 0, 0, 0, 0, "", "", "Return home"
 End Sub
 
 Private Sub WriteStep(ws As Worksheet, r As Long, _
