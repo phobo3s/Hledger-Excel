@@ -20,8 +20,17 @@ Public Sub CreateBANKSSheet()
 
     Set ws = wb.Worksheets.Add(After:=wb.Worksheets(wb.Worksheets.Count))
     ws.Name = "BANKS"
+    CreateBANKSHeaders ws
 
-    ' Write headers (columns A-Q)
+    ' Populate TEB rows
+    PopulateTEB ws
+
+    ' Auto-fit columns
+    ws.Columns("A:Q").AutoFit
+    MsgBox "BANKS sheet created and populated with TEB script.", vbInformation, "BankGetterSetup"
+End Sub
+
+Public Sub CreateBANKSHeaders(ws As Worksheet)
     Dim headers As Variant
     headers = Array("BankID", "Seq", "StepType", "Predicate", "Param1", "Param2", "Param3", _
                     "AccountName", "DateCol", "DescCol", "AmountCol", "RawCol", _
@@ -31,13 +40,6 @@ Public Sub CreateBANKSSheet()
         ws.Cells(1, c + 1).value = headers(c)
         ws.Cells(1, c + 1).Font.Bold = True
     Next c
-
-    ' Populate TEB rows
-    PopulateTEB ws
-
-    ' Auto-fit columns
-    ws.Columns("A:Q").AutoFit
-    MsgBox "BANKS sheet created and populated with TEB script.", vbInformation, "BankGetterSetup"
 End Sub
 
 Private Sub PopulateTEB(ws As Worksheet)
