@@ -1,6 +1,12 @@
 ﻿Attribute VB_Name = "BankGetter"
 Option Explicit
 
+' Entry point for the data-driven engine. bankID must match a BankID in the BANKS sheet.
+' Run BankGetterSetup.CreateBANKSSheet once to initialize the BANKS sheet before using this.
+Public Sub BankGetterRun(Optional bankID As String = "TEB")
+    BankGetterEngine.RunBank bankID
+End Sub
+
 Public Sub BankGetterTEB()
     LogManager.LogInfo "=== BankGetter: TEB Data Fetch Started ==="
     On Error GoTo ErrorHandler
