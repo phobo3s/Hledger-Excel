@@ -168,6 +168,7 @@ Private Sub ExecAttachWindow(st As StepRow, state As EngineState)
     Dim extWin As stdWindow
     Set extWin = stdWindow.CreateFromHwnd(hwnd)
     Set state.chrome = stdChrome.CreateFromExisting(extWin)
+    state.chrome.accMain.PrintDescTexts  ' accessibility tree'yi başlat
     LogManager.LogInfo "Attached to window: " & st.Param1
 End Sub
 
