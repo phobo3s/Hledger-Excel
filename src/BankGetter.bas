@@ -71,6 +71,7 @@ Private Sub BankGetter_FetchAccounts(chrome As stdChrome)
     Dim hasDate As Boolean
 
     With chrome
+        .accMain.PrintDescTexts
         Call .AwaitForAccElement(stdLambda.Create("$1.Name = ""Hesaplar"" and $1.Role = ""ROLE_LINK""")).DoDefaultAction
         For q = 1 To 4
             Set detailsLinks = Nothing
