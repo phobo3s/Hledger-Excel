@@ -296,23 +296,24 @@ Private Sub SortAndFormatBankInfo()
     accLastRow = gBankRow - 1
     If accLastRow >= 2 Then
         FormatSection BANK_COL_ACCOUNT, accLastRow, "Hesap", "Tarih", _
-                      "A" & ChrW(231) & ChrW(305) & "klama", "Tutar", ""
+                      "Açıklama", "Tutar", ""
     End If
 
     ' --- Kart bölümleri (G-K, L-P, ...) ---
-    Dim col As Long
-    col = BANK_COL_ACCOUNT + CARD_COL_OFFSET  ' G (7) — ilk kart
-    Do While col < gCardCol  ' gCardCol bir sonraki boş karta işaret eder
-        Dim cardLastRow As Long
-        cardLastRow = gBankWs.Cells(gBankWs.Rows.count, col + 1).End(xlUp).Row
-        If cardLastRow >= 2 Then
-            Dim cardLabel As String
-            cardLabel = gBankWs.Cells(2, col).value  ' "Kart-TEB BONUS CARD" vb.
-            FormatSection col, cardLastRow, cardLabel, "Tarih", _
-                          "A" & ChrW(231) & ChrW(305) & "klama", "Tutar", "Ham Veri"
-        End If
-        col = col + CARD_COL_OFFSET
-    Loop
+    '2911 kartında ek kart da sıradan geldiği için bunu sort etmemem lazım. biraz sıkıntılar mevcut.
+'    Dim col As Long
+'    col = BANK_COL_ACCOUNT + CARD_COL_OFFSET  ' G (7) — ilk kart
+'    Do While col < gCardCol  ' gCardCol bir sonraki boş karta işaret eder
+'        Dim cardLastRow As Long
+'        cardLastRow = gBankWs.Cells(gBankWs.Rows.count, col + 1).End(xlUp).Row
+'        If cardLastRow >= 2 Then
+'            Dim cardLabel As String
+'            cardLabel = gBankWs.Cells(2, col).value  ' "Kart-TEB BONUS CARD" vb.
+'            FormatSection col, cardLastRow, cardLabel, "Tarih", _
+'                          "Açıklama", "Tutar", "Ham Veri"
+'        End If
+'        col = col + CARD_COL_OFFSET
+'    Loop
 End Sub
 
 Private Sub FormatSection(baseCol As Long, lastRow As Long, _
@@ -357,10 +358,10 @@ Private Function SafeChildText(itm As Variant) As String
 End Function
 
 Private Function CastMonthName(monthNum As Integer) As String
-    CastMonthName = Array("Ocak", ChrW(350) & "ubat", "Mart", "Nisan", "May" & ChrW(305) & "s", _
-                          "Haziran", "Temmuz", "A" & ChrW(287) & "ustos", _
-                          "Eyl" & ChrW(252) & "l", "Ekim", _
-                          "Kas" & ChrW(305) & "m", "Aral" & ChrW(305) & "k")(monthNum - 1)
+    CastMonthName = Array("Ocak", "Şubat", "Mart", "Nisan", "Mayıs", _
+                          "Haziran", "Temmuz", "Ağustos", _
+                          "Eylül", "Ekim", _
+                          "Kasım", "Aralık")(monthNum - 1)
 End Function
 
 
