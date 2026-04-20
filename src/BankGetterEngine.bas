@@ -1,23 +1,23 @@
-Attribute VB_Name = "BankGetterEngine"
+﻿Attribute VB_Name = "BankGetterEngine"
 Option Explicit
 
 Private Type StepRow
-    BankID As String
-    Seq As Integer
-    StepType As String
-    Predicate As String
+    bankID As String
+    seq As Integer
+    stepType As String
+    predicate As String
     Param1 As String
     Param2 As String
     Param3 As String
-    AccountName As String
-    DateCol As Integer
-    DescCol As Integer
-    AmountCol As Integer
-    RawCol As Integer
-    SkipRows As Integer
-    AmountSign As Integer
-    LoopLabel As String
-    HookName As String
+    accountName As String
+    dateCol As Integer
+    descCol As Integer
+    amountCol As Integer
+    rawCol As Integer
+    skipRows As Integer
+    amountSign As Integer
+    loopLabel As String
+    hookName As String
 End Type
 
 Private Type EngineState
@@ -51,7 +51,7 @@ Public Sub RunBank(bankID As String)
 
     Dim ws As Worksheet
     Set ws = Application.ActiveWorkbook.Worksheets("Bank_Info")
-    ws.Activate
+    ws.activate
     ws.Cells.Delete
     ws.Range("B2").Select
 
@@ -91,7 +91,7 @@ Private Function LoadSteps(bankID As String, ByRef steps() As StepRow) As Boolea
     End If
 
     Dim lastRow As Long
-    lastRow = banksWs.Cells(banksWs.Rows.Count, COL_BANKID).End(xlUp).Row
+    lastRow = banksWs.Cells(banksWs.Rows.count, COL_BANKID).End(xlUp).Row
 
     Dim count As Integer
     count = 0
@@ -113,22 +113,22 @@ Private Function LoadSteps(bankID As String, ByRef steps() As StepRow) As Boolea
     For r = 2 To lastRow
         If UCase(Trim(banksWs.Cells(r, COL_BANKID).value)) = UCase(Trim(bankID)) Then
             With steps(idx)
-                .BankID = Trim(banksWs.Cells(r, COL_BANKID).value)
-                .Seq = CInt(banksWs.Cells(r, COL_SEQ).value)
-                .StepType = UCase(Trim(banksWs.Cells(r, COL_STEPTYPE).value))
-                .Predicate = Trim(banksWs.Cells(r, COL_PREDICATE).value)
+                .bankID = Trim(banksWs.Cells(r, COL_BANKID).value)
+                .seq = CInt(banksWs.Cells(r, COL_SEQ).value)
+                .stepType = UCase(Trim(banksWs.Cells(r, COL_STEPTYPE).value))
+                .predicate = Trim(banksWs.Cells(r, COL_PREDICATE).value)
                 .Param1 = Trim(banksWs.Cells(r, COL_PARAM1).value)
                 .Param2 = Trim(banksWs.Cells(r, COL_PARAM2).value)
                 .Param3 = Trim(banksWs.Cells(r, COL_PARAM3).value)
-                .AccountName = Trim(banksWs.Cells(r, COL_ACCOUNTNAME).value)
-                .DateCol = SafeInt(banksWs.Cells(r, COL_DATECOL).value)
-                .DescCol = SafeInt(banksWs.Cells(r, COL_DESCCOL).value)
-                .AmountCol = SafeInt(banksWs.Cells(r, COL_AMOUNTCOL).value)
-                .RawCol = SafeInt(banksWs.Cells(r, COL_RAWCOL).value)
-                .SkipRows = SafeInt(banksWs.Cells(r, COL_SKIPROWS).value)
-                .AmountSign = SafeIntDefault(banksWs.Cells(r, COL_AMOUNTSIGN).value, 1)
-                .LoopLabel = Trim(banksWs.Cells(r, COL_LOOPLABEL).value)
-                .HookName = Trim(banksWs.Cells(r, COL_HOOKNAME).value)
+                .accountName = Trim(banksWs.Cells(r, COL_ACCOUNTNAME).value)
+                .dateCol = SafeInt(banksWs.Cells(r, COL_DATECOL).value)
+                .descCol = SafeInt(banksWs.Cells(r, COL_DESCCOL).value)
+                .amountCol = SafeInt(banksWs.Cells(r, COL_AMOUNTCOL).value)
+                .rawCol = SafeInt(banksWs.Cells(r, COL_RAWCOL).value)
+                .skipRows = SafeInt(banksWs.Cells(r, COL_SKIPROWS).value)
+                .amountSign = SafeIntDefault(banksWs.Cells(r, COL_AMOUNTSIGN).value, 1)
+                .loopLabel = Trim(banksWs.Cells(r, COL_LOOPLABEL).value)
+                .hookName = Trim(banksWs.Cells(r, COL_HOOKNAME).value)
             End With
             idx = idx + 1
         End If
@@ -143,8 +143,8 @@ Private Sub ExecuteSteps(steps() As StepRow, state As EngineState, fromIdx As Lo
     Do While i <= toIdx
         Dim st As StepRow
         st = steps(i)
-        LogManager.LogDebug "Step " & st.Seq & ": " & st.StepType
-        Select Case st.StepType
+        LogManager.LogDebug "Step " & st.seq & ": " & st.stepType
+        Select Case st.stepType
             Case "ATTACH_WINDOW": ExecAttachWindow st, state
             Case "NAVIGATE":      ExecNavigate st, state
             Case "CLICK":         ExecClick st, state
@@ -178,13 +178,13 @@ End Sub
 
 Private Sub ExecClick(st As StepRow, state As EngineState)
     Dim pred As String
-    pred = SubstituteVars(st.Predicate, state)
+    pred = SubstituteVars(st.predicate, state)
     Call state.chrome.AwaitForAccElement(stdLambda.Create(pred)).DoDefaultAction
 End Sub
 
 Private Sub ExecClickIfExists(st As StepRow, state As EngineState)
     Dim pred As String
-    pred = SubstituteVars(st.Predicate, state)
+    pred = SubstituteVars(st.predicate, state)
     Dim timeout As Integer
     timeout = 3
     If Len(st.Param1) > 0 Then timeout = CInt(st.Param1)
@@ -195,16 +195,16 @@ End Sub
 
 Private Sub ExecWait(st As StepRow, state As EngineState)
     Dim pred As String
-    pred = SubstituteVars(st.Predicate, state)
+    pred = SubstituteVars(st.predicate, state)
     Dim timeout As Integer
     timeout = -1
     If Len(st.Param1) > 0 Then timeout = CInt(st.Param1)
-    Call state.chrome.AwaitForAccElement(stdLambda.Create(pred), , timeout)
+    Call state.chrome.AwaitForAccElement(stdLambda.Create(pred), , 30)
 End Sub
 
 Private Sub ExecSetValue(st As StepRow, state As EngineState)
     Dim pred As String
-    pred = SubstituteVars(st.Predicate, state)
+    pred = SubstituteVars(st.predicate, state)
     Dim val As String
     val = SubstituteVars(st.Param1, state)
     state.chrome.AwaitForAccElement(stdLambda.Create(pred)).value = val
@@ -212,9 +212,9 @@ End Sub
 
 Private Sub ExecExtractTable(st As StepRow, state As EngineState)
     Dim pred As String
-    pred = SubstituteVars(st.Predicate, state)
+    pred = SubstituteVars(st.predicate, state)
     Dim accountName As String
-    accountName = SubstituteVars(st.AccountName, state)
+    accountName = SubstituteVars(st.accountName, state)
 
     Call state.chrome.AwaitForAccElement(stdLambda.Create(pred))
     Dim tbl As stdAcc
@@ -225,11 +225,11 @@ Private Sub ExecExtractTable(st As StepRow, state As EngineState)
     End If
 
     Dim amountSign As Integer
-    amountSign = st.AmountSign
+    amountSign = st.amountSign
     If amountSign = 0 Then amountSign = 1
 
     Dim skipLeft As Integer
-    skipLeft = st.SkipRows
+    skipLeft = st.skipRows
     Dim childi As Variant, itm As Variant
     Dim i As Long, j As Integer
 
@@ -248,19 +248,19 @@ Private Sub ExecExtractTable(st As StepRow, state As EngineState)
                 If Err.Number <> 0 Then cellText = itm.name: Err.Clear
                 On Error GoTo 0
 
-                If j = st.DateCol Then
+                If j = st.dateCol Then
                     On Error Resume Next
                     rowDate = CDate(Replace(Replace(cellText, "/", "."), "(*)", ""))
                     If Err.Number <> 0 Then rowDate = Empty: Err.Clear
                     On Error GoTo 0
-                ElseIf j = st.DescCol Then
+                ElseIf j = st.descCol Then
                     rowDesc = cellText
-                ElseIf j = st.AmountCol Then
+                ElseIf j = st.amountCol Then
                     On Error Resume Next
                     rowAmount = CDbl(cellText) * amountSign
                     If Err.Number <> 0 Then rowAmount = 0: Err.Clear
                     On Error GoTo 0
-                ElseIf st.RawCol > 0 And j = st.RawCol Then
+                ElseIf st.rawCol > 0 And j = st.rawCol Then
                     rowRaw = cellText
                 End If
             Next itm
@@ -282,18 +282,18 @@ Private Sub ExecExtractTable(st As StepRow, state As EngineState)
 End Sub
 
 Private Sub ExecCallHook(st As StepRow, state As EngineState)
-    If Len(st.HookName) = 0 Then
+    If Len(st.hookName) = 0 Then
         LogManager.LogWarning "CALL_HOOK: HookName is empty"
         Exit Sub
     End If
     ' Position ActiveCell so hooks that write via ActiveCell land on the correct row
     state.originCell.offset(state.writeRow, 0).Select
     On Error GoTo HookError
-    CallByName BankGetterHooks, st.HookName, VbMethod, state.chrome, st.Param1, st.Param2, st.Param3
+    CallByName BankGetterHooks, st.hookName, VbMethod, state.chrome, st.Param1, st.Param2, st.Param3
     SyncWriteRow state  ' Hook may have written rows — re-scan to find new position
     Exit Sub
 HookError:
-    LogManager.LogError "CALL_HOOK '" & st.HookName & "' failed: " & Err.Description
+    LogManager.LogError "CALL_HOOK '" & st.hookName & "' failed: " & Err.Description
 End Sub
 
 ' Scans down from originCell to find how many rows have been written (date col is offset 1)
@@ -348,9 +348,9 @@ End Sub
 
 Private Function ExecLoopForEach(steps() As StepRow, state As EngineState, startIdx As Long, toIdx As Long) As Long
     Dim endIdx As Long
-    endIdx = FindLoopEnd(steps, steps(startIdx).LoopLabel, startIdx + 1, toIdx)
+    endIdx = FindLoopEnd(steps, steps(startIdx).loopLabel, startIdx + 1, toIdx)
     If endIdx < 0 Then
-        LogManager.LogError "LOOP_FOR_EACH: no matching LOOP_END for label '" & steps(startIdx).LoopLabel & "'"
+        LogManager.LogError "LOOP_FOR_EACH: no matching LOOP_END for label '" & steps(startIdx).loopLabel & "'"
         ExecLoopForEach = startIdx
         Exit Function
     End If
@@ -368,22 +368,22 @@ End Function
 
 Private Function ExecLoopWhile(steps() As StepRow, state As EngineState, startIdx As Long, toIdx As Long) As Long
     Dim endIdx As Long
-    endIdx = FindLoopEnd(steps, steps(startIdx).LoopLabel, startIdx + 1, toIdx)
+    endIdx = FindLoopEnd(steps, steps(startIdx).loopLabel, startIdx + 1, toIdx)
     If endIdx < 0 Then
-        LogManager.LogError "LOOP_WHILE: no matching LOOP_END for label '" & steps(startIdx).LoopLabel & "'"
+        LogManager.LogError "LOOP_WHILE: no matching LOOP_END for label '" & steps(startIdx).loopLabel & "'"
         ExecLoopWhile = startIdx
         Exit Function
     End If
 
     Dim pred As String
-    pred = SubstituteVars(steps(startIdx).Predicate, state)
+    pred = SubstituteVars(steps(startIdx).predicate, state)
     Dim timeout As Integer
     timeout = 3
     If Len(steps(startIdx).Param1) > 0 Then timeout = CInt(steps(startIdx).Param1)
 
     Do
         Dim el As stdAcc
-        Set el = state.chrome.AwaitForAccElement(stdLambda.Create(pred), , timeout)
+        Set el = state.chrome.AwaitForAccElement(stdLambda.Create(pred), , 30)
         If el Is Nothing Then Exit Do
         ExecuteSteps steps, state, startIdx + 1, endIdx - 1
         el.DoDefaultAction
@@ -397,11 +397,11 @@ Private Function FindLoopEnd(steps() As StepRow, label As String, fromIdx As Lon
     depth = 0
     Dim i As Long
     For i = fromIdx To toIdx
-        Select Case steps(i).StepType
+        Select Case steps(i).stepType
             Case "LOOP_FOR_EACH", "LOOP_WHILE"
-                If steps(i).LoopLabel = label Then depth = depth + 1
+                If steps(i).loopLabel = label Then depth = depth + 1
             Case "LOOP_END"
-                If steps(i).LoopLabel = label Then
+                If steps(i).loopLabel = label Then
                     If depth = 0 Then
                         FindLoopEnd = i
                         Exit Function
@@ -428,3 +428,4 @@ Private Function SafeIntDefault(v As Variant, defaultVal As Integer) As Integer
         SafeIntDefault = defaultVal
     End If
 End Function
+

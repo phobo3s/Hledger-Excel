@@ -90,12 +90,12 @@ Private Sub Tokenize(sType)
     Dim sKey As String
     
     With oRegEx.Execute(sBuffer)
-        If .Count = 0 Then Exit Sub
-        ReDim aContent(0 To .Count - 1)
+        If .count = 0 Then Exit Sub
+        ReDim aContent(0 To .count - 1)
         lCopyIndex = 1
-        For i = 0 To .Count - 1
+        For i = 0 To .count - 1
             With .item(i)
-                sKey = "<" & oTokens.Count & sType & ">"
+                sKey = "<" & oTokens.count & sType & ">"
                 oTokens(sKey) = .value
                 aContent(i) = Mid(sBuffer, lCopyIndex, .FirstIndex - lCopyIndex + 1) & sKey
                 lCopyIndex = .FirstIndex + .length + 1
@@ -188,7 +188,7 @@ Function serialize(vJSON As Variant) As String
     
     Set oChunks = New Dictionary
     SerializeElement vJSON, ""
-    serialize = Join(oChunks.Items(), "")
+    serialize = Join(oChunks.items(), "")
     Set oChunks = Nothing
     
 End Function
@@ -202,43 +202,43 @@ Private Sub SerializeElement(vElement As Variant, ByVal sIndent As String)
         Select Case varType(vElement)
             Case vbObject
                 If Not TypeOf vElement Is Dictionary Then
-                    .item(.Count) = "{}"
-                ElseIf vElement.Count = 0 Then
-                    .item(.Count) = "{}"
+                    .item(.count) = "{}"
+                ElseIf vElement.count = 0 Then
+                    .item(.count) = "{}"
                 Else
-                    .item(.Count) = "{" & vbCrLf
+                    .item(.count) = "{" & vbCrLf
                     aKeys = vElement.keys
                     For i = 0 To UBound(aKeys)
-                        .item(.Count) = sIndent & vbTab & """" & EscapeJsonString(aKeys(i)) & """" & ": "
+                        .item(.count) = sIndent & vbTab & """" & EscapeJsonString(aKeys(i)) & """" & ": "
                         SerializeElement vElement(aKeys(i)), sIndent & vbTab
-                        If Not (i = UBound(aKeys)) Then .item(.Count) = ","
-                        .item(.Count) = vbCrLf
+                        If Not (i = UBound(aKeys)) Then .item(.count) = ","
+                        .item(.count) = vbCrLf
                     Next
-                    .item(.Count) = sIndent & "}"
+                    .item(.count) = sIndent & "}"
                 End If
             Case Is >= vbArray
                 If UBound(vElement) = -1 Then
-                    .item(.Count) = "[]"
+                    .item(.count) = "[]"
                 Else
-                    .item(.Count) = "[" & vbCrLf
+                    .item(.count) = "[" & vbCrLf
                     For i = 0 To UBound(vElement)
-                        .item(.Count) = sIndent & vbTab
+                        .item(.count) = sIndent & vbTab
                         SerializeElement vElement(i), sIndent & vbTab
-                        If Not (i = UBound(vElement)) Then .item(.Count) = "," 'sResult = sResult & ","
-                        .item(.Count) = vbCrLf
+                        If Not (i = UBound(vElement)) Then .item(.count) = "," 'sResult = sResult & ","
+                        .item(.count) = vbCrLf
                     Next
-                    .item(.Count) = sIndent & "]"
+                    .item(.count) = sIndent & "]"
                 End If
             Case vbInteger, vbLong
-                .item(.Count) = vElement
+                .item(.count) = vElement
             Case vbSingle, vbDouble
-                .item(.Count) = Replace(vElement, ",", ".")
+                .item(.count) = Replace(vElement, ",", ".")
             Case vbNull, vbError
-                .item(.Count) = "null"
+                .item(.count) = "null"
             Case vbBoolean
-                .item(.Count) = IIf(vElement, "true", "false")
+                .item(.count) = IIf(vElement, "true", "false")
             Case Else
-                .item(.Count) = """" & EscapeJsonString(vElement) & """"
+                .item(.count) = """" & EscapeJsonString(vElement) & """"
         End Select
     End With
     
@@ -265,7 +265,7 @@ Function ToYaml(vJSON As Variant) As String
             Set oChunks = New Dictionary
             ToYamlElement vJSON, ""
             oChunks.Remove 0
-            ToYaml = Join(oChunks.Items(), "")
+            ToYaml = Join(oChunks.items(), "")
             Set oChunks = Nothing
         Case vbNull, vbError
             ToYaml = "Null"
@@ -286,35 +286,35 @@ Private Sub ToYamlElement(vElement As Variant, ByVal sIndent As String)
         Select Case varType(vElement)
             Case vbObject
                 If Not TypeOf vElement Is Dictionary Then
-                    .item(.Count) = "''"
-                ElseIf vElement.Count = 0 Then
-                    .item(.Count) = "''"
+                    .item(.count) = "''"
+                ElseIf vElement.count = 0 Then
+                    .item(.count) = "''"
                 Else
-                    .item(.Count) = vbCrLf
+                    .item(.count) = vbCrLf
                     aKeys = vElement.keys
                     For i = 0 To UBound(aKeys)
-                        .item(.Count) = sIndent & aKeys(i) & ": "
+                        .item(.count) = sIndent & aKeys(i) & ": "
                         ToYamlElement vElement(aKeys(i)), sIndent & "    "
-                        If Not (i = UBound(aKeys)) Then .item(.Count) = vbCrLf
+                        If Not (i = UBound(aKeys)) Then .item(.count) = vbCrLf
                     Next
                 End If
             Case Is >= vbArray
                 If UBound(vElement) = -1 Then
-                    .item(.Count) = "''"
+                    .item(.count) = "''"
                 Else
-                    .item(.Count) = vbCrLf
+                    .item(.count) = vbCrLf
                     For i = 0 To UBound(vElement)
-                        .item(.Count) = sIndent & i & ": "
+                        .item(.count) = sIndent & i & ": "
                         ToYamlElement vElement(i), sIndent & "    "
-                        If Not (i = UBound(vElement)) Then .item(.Count) = vbCrLf
+                        If Not (i = UBound(vElement)) Then .item(.count) = vbCrLf
                     Next
                 End If
             Case vbNull, vbError
-                .item(.Count) = "Null"
+                .item(.count) = "Null"
             Case vbBoolean
-                .item(.Count) = IIf(vElement, "True", "False")
+                .item(.count) = IIf(vElement, "True", "False")
             Case Else
-                .item(.Count) = CStr(vElement)
+                .item(.count) = CStr(vElement)
         End Select
     End With
     
@@ -333,8 +333,8 @@ Sub ToArray(vJSON As Variant, aRows() As Variant, aHeader() As Variant)
     Set oHeader = New Dictionary
     Select Case varType(vJSON)
         Case vbObject
-            If vJSON.Count > 0 Then
-                ReDim aData(0 To vJSON.Count - 1, 0 To 0)
+            If vJSON.count > 0 Then
+                ReDim aData(0 To vJSON.count - 1, 0 To 0)
                 oHeader("#") = 0
                 i = 0
                 For Each sName In vJSON.keys
@@ -381,8 +381,8 @@ Private Sub ToArrayElement(vElement As Variant, sFieldName As String)
             Next
         Case Else
             If Not oHeader.Exists(sFieldName) Then
-                oHeader(sFieldName) = oHeader.Count
-                If UBound(aData, 2) < oHeader.Count - 1 Then ReDim Preserve aData(0 To UBound(aData, 1), 0 To oHeader.Count - 1)
+                oHeader(sFieldName) = oHeader.count
+                If UBound(aData, 2) < oHeader.count - 1 Then ReDim Preserve aData(0 To UBound(aData, 1), 0 To oHeader.count - 1)
             End If
             j = oHeader(sFieldName)
             aData(i, j) = vElement
@@ -411,7 +411,7 @@ Private Sub FlattenElement(vElement As Variant, sProperty As String)
     
     Select Case True
         Case TypeOf vElement Is Dictionary
-            If vElement.Count > 0 Then
+            If vElement.count > 0 Then
                 For Each vKey In vElement.keys
                     FlattenElement vElement(vKey), IIf(sProperty <> "", sProperty & "." & vKey, vKey)
                 Next
@@ -517,6 +517,8 @@ Private Sub UnflattenElement(vParent, lNextLevel, aQualifiers, vValue, bSuccess)
     bSuccess = True
     
 End Sub
+
+
 
 
 

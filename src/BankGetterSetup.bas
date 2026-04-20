@@ -1,4 +1,4 @@
-Attribute VB_Name = "BankGetterSetup"
+﻿Attribute VB_Name = "BankGetterSetup"
 Option Explicit
 
 ' Creates the BANKS worksheet and populates it with TEB script rows.
@@ -18,8 +18,8 @@ Public Sub CreateBANKSSheet()
         Application.DisplayAlerts = True
     End If
 
-    Set ws = wb.Worksheets.Add(After:=wb.Worksheets(wb.Worksheets.Count))
-    ws.Name = "BANKS"
+    Set ws = wb.Worksheets.Add(After:=wb.Worksheets(wb.Worksheets.count))
+    ws.name = "BANKS"
     CreateBANKSHeaders ws
 
     ' Populate TEB rows
@@ -134,3 +134,5 @@ Private Sub WriteStep(ws As Worksheet, r As Long, _
     ws.Cells(r, 16).value = hookName
     ws.Cells(r, 17).value = notes
 End Sub
+
+

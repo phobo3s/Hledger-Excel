@@ -1701,7 +1701,7 @@ End Function
 
 'Obtain the next window given a stack
 Friend Function protGetNextDescendent(ByVal stack As Collection, ByVal DFS As Boolean, ByVal Prev As stdWindow) As stdWindow
-  If stack.Count > 0 Then
+  If stack.count > 0 Then
     'Get the next window, use popCol if we want to do Depth First Search, else use shiftCol
     Dim oNext As stdWindow
     If DFS Then
@@ -1788,8 +1788,8 @@ End Function
 '@param {ByRef Collection<stdWindow>} Collection to pop value out of
 '@returns {stdWindow} Window popped out of collection
 Private Function PopCol(ByRef col As Collection) As stdWindow
-  Set PopCol = col(col.Count)
-  Call col.Remove(col.Count)
+  Set PopCol = col(col.count)
+  Call col.Remove(col.count)
 End Function
 
 'Shift a value out of a collection
@@ -2265,6 +2265,8 @@ End Function
 '  if IsEmpty(stdEnumerator) then Call Msgbox("Requires `stdEnumerator`", vbInformation) else stdEnumerator.Requires
 '
 'End Sub
+
+
 
 
 

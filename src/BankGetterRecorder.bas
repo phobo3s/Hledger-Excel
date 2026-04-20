@@ -1,4 +1,4 @@
-Attribute VB_Name = "BankGetterRecorder"
+﻿Attribute VB_Name = "BankGetterRecorder"
 Option Explicit
 
 ' Real-time click recorder for the BANKS sheet.
@@ -19,7 +19,7 @@ Option Explicit
 
 Private Declare PtrSafe Function GetCursorPos Lib "user32" (lpPoint As RECORDER_POINT) As Long
 Private Declare PtrSafe Function GetAsyncKeyState Lib "user32" (ByVal vKey As Long) As Integer
-Private Declare PtrSafe Sub Sleep Lib "kernel32" (ByVal dwMilliseconds As Long)
+Private Declare PtrSafe Sub sleep Lib "kernel32" Alias "Sleep" (ByVal dwMilliseconds As Long)
 
 Private Type RECORDER_POINT
     x As Long
@@ -61,7 +61,7 @@ Public Sub StartRecording(Optional windowTitle As String = "")
     ' Recording loop: poll at 50ms intervals
     Do While gIsRecording
         DoEvents
-        Sleep 50
+        sleep 50
 
         ' ESC anywhere stops recording
         If (GetAsyncKeyState(VK_ESCAPE) And &H8000) <> 0 Then
@@ -75,16 +75,16 @@ Public Sub StartRecording(Optional windowTitle As String = "")
 
         If Not isDown And gWasButtonDown Then
             ' Read element under cursor at moment of release
-            Dim pt As RECORDER_POINT
-            GetCursorPos pt
-            RecordAtPoint pt.x, pt.y
+            Dim pT As RECORDER_POINT
+            GetCursorPos pT
+            RecordAtPoint pT.x, pT.y
         End If
 
         gWasButtonDown = isDown
     Loop
 
     gRecordWs.Columns("A:F").AutoFit
-    gRecordWs.Activate
+    gRecordWs.activate
     MsgBox "Kayıt tamamlandı! " & (gRecordRow - 2) & " adım kaydedildi." & vbNewLine & _
            "RECORDING sheet'ini incele, sonra ConvertToBANKS çalıştır.", _
            vbInformation, "BankGetterRecorder"
@@ -117,7 +117,7 @@ Public Sub ConvertToBANKS(Optional bankID As String = "")
 
     ' Find next available row in BANKS and highest existing seq for this bankID
     Dim banksLastRow As Long
-    banksLastRow = banksWs.Cells(banksWs.Rows.Count, 1).End(xlUp).Row
+    banksLastRow = banksWs.Cells(banksWs.Rows.count, 1).End(xlUp).Row
     If banksLastRow = 1 Then
         ' Empty BANKS sheet — write headers
         BankGetterSetup.CreateBANKSHeaders banksWs
@@ -138,7 +138,7 @@ Public Sub ConvertToBANKS(Optional bankID As String = "")
 
     ' Copy from RECORDING to BANKS
     Dim recLastRow As Long
-    recLastRow = recWs.Cells(recWs.Rows.Count, 1).End(xlUp).Row
+    recLastRow = recWs.Cells(recWs.Rows.count, 1).End(xlUp).Row
 
     Dim addedCount As Long
     addedCount = 0
@@ -167,7 +167,7 @@ Public Sub ConvertToBANKS(Optional bankID As String = "")
     Next rr
 
     banksWs.Columns("A:Q").AutoFit
-    banksWs.Activate
+    banksWs.activate
     MsgBox addedCount & " adım BANKS sheet'ine eklendi (BankID=" & bankID & ")." & vbNewLine & _
            "EXTRACT_TABLE satırları için DateCol, DescCol, AmountCol, SkipRows sütunlarını doldurmayı unutma.", _
            vbInformation, "ConvertToBANKS"
@@ -258,8 +258,10 @@ Private Function GetOrCreateSheet(sheetName As String) As Worksheet
     On Error GoTo 0
     If ws Is Nothing Then
         Set ws = Application.ActiveWorkbook.Worksheets.Add( _
-            After:=Application.ActiveWorkbook.Worksheets(Application.ActiveWorkbook.Worksheets.Count))
-        ws.Name = sheetName
+            After:=Application.ActiveWorkbook.Worksheets(Application.ActiveWorkbook.Worksheets.count))
+        ws.name = sheetName
     End If
     Set GetOrCreateSheet = ws
 End Function
+
+

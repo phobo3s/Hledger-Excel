@@ -40,15 +40,15 @@ Public Property Get code() As String
 End Property
 Public Function CumulativeStockCount() As Double
     Dim aPos As Variant
-    For Each aPos In pPositions.Items
+    For Each aPos In pPositions.items
         CumulativeStockCount = CumulativeStockCount + aPos.OpenQuantity
     Next aPos
 End Function
 Public Property Get OpenCount() As String
-    OpenCount = pPositions.Count
+    OpenCount = pPositions.count
 End Property
 Public Property Get ClosedCount() As String
-    ClosedCount = pClosedPositions.Count
+    ClosedCount = pClosedPositions.count
 End Property
 
 'create a position
@@ -65,17 +65,17 @@ Public Function OpenPosition(ddate As Date, Price As Double, quant As Double)
 End Function
 'call open position
 Public Property Get Position(PossNum As Integer) As PositionObj
-    Set Position = pPositions.Items(PossNum - 1) '-1 because i want to positions to be start from 1
+    Set Position = pPositions.items(PossNum - 1) '-1 because i want to positions to be start from 1
 End Property
 'call closed position
 Public Property Get ClosedPosition(PossNum As Integer) As PositionObj
-    Set ClosedPosition = pClosedPositions.Items(PossNum - 1) '-1 because i want to positions to be start from 1
+    Set ClosedPosition = pClosedPositions.items(PossNum - 1) '-1 because i want to positions to be start from 1
 End Property
 'close position with FIFO
 Public Function ClosePosition(ddate As Date, Price As Double, quant As Double) As PositionObj
     'close position according to FIFO principle.
     Dim Position As PositionObj
-    Set Position = pPositions.Items(0) 'first position.
+    Set Position = pPositions.items(0) 'first position.
     Price = Math.Abs(Price)
     quant = Math.Abs(quant)
     Dim tempQuant As Double
@@ -119,6 +119,7 @@ Public Function ClosePosition(ddate As Date, Price As Double, quant As Double) A
         'error?!?
     End If
 End Function
+
 
 
 

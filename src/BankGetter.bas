@@ -1,11 +1,5 @@
-Attribute VB_Name = "BankGetter"
+﻿Attribute VB_Name = "BankGetter"
 Option Explicit
-
-' Entry point for the data-driven engine. bankID must match a BankID in the BANKS sheet.
-' Run BankGetterSetup.CreateBANKSSheet once to initialize the BANKS sheet before using this.
-Public Sub BankGetterRun(Optional bankID As String = "TEB")
-    BankGetterEngine.RunBank bankID
-End Sub
 
 ' Module-level state shared across the three fetch helpers
 Private gBankWs As Worksheet
@@ -19,6 +13,12 @@ Private Const BANK_COL_DESC    As Integer = 4  ' D
 Private Const BANK_COL_AMOUNT  As Integer = 5  ' E
 Private Const BANK_COL_RAW     As Integer = 6  ' F
 Private Const CARD_COL_OFFSET  As Integer = 5  ' Her kart 5 sütun sağa
+
+' Entry point for the data-driven engine. bankID must match a BankID in the BANKS sheet.
+' Run BankGetterSetup.CreateBANKSSheet once to initialize the BANKS sheet before using this.
+Public Sub BankGetterRun(Optional bankID As String = "TEB")
+    BankGetterEngine.RunBank bankID
+End Sub
 
 Public Sub BankGetterTEB()
     LogManager.LogInfo "=== BankGetter: TEB Data Fetch Started ==="
@@ -304,7 +304,7 @@ Private Sub SortAndFormatBankInfo()
     col = BANK_COL_ACCOUNT + CARD_COL_OFFSET  ' G (7) — ilk kart
     Do While col < gCardCol  ' gCardCol bir sonraki boş karta işaret eder
         Dim cardLastRow As Long
-        cardLastRow = gBankWs.Cells(gBankWs.Rows.Count, col + 1).End(xlUp).Row
+        cardLastRow = gBankWs.Cells(gBankWs.Rows.count, col + 1).End(xlUp).Row
         If cardLastRow >= 2 Then
             Dim cardLabel As String
             cardLabel = gBankWs.Cells(2, col).value  ' "Kart-TEB BONUS CARD" vb.
@@ -362,3 +362,5 @@ Private Function CastMonthName(monthNum As Integer) As String
                           "Eyl" & ChrW(252) & "l", "Ekim", _
                           "Kas" & ChrW(305) & "m", "Aral" & ChrW(305) & "k")(monthNum - 1)
 End Function
+
+

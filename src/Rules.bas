@@ -135,11 +135,11 @@ Private Function RegxReplacer(sourcestr As String, regPattern As String, Optiona
         Set replaceReg = New RegExp
         replaceReg.Pattern = "$\d+"
         Dim ExpectedSubMatchCount As Long
-        If replaceReg.test(replaceStr) = True Then ExpectedSubMatchCount = replaceReg.Execute(replaceStr)(0).SubMatches.Count
+        If replaceReg.test(replaceStr) = True Then ExpectedSubMatchCount = replaceReg.Execute(replaceStr)(0).SubMatches.count
         Dim regResult As Variant
         Set regResult = regx.Execute(sourcestr) 'burada hata verirse regex patternde bir sorun var demek
         If regx.test(sourcestr) = True Then
-            If regResult(0).SubMatches.Count = ExpectedSubMatchCount Or ExpectedSubMatchCount = 0 Then
+            If regResult(0).SubMatches.count = ExpectedSubMatchCount Or ExpectedSubMatchCount = 0 Then
                 If InStr(1, replaceStr, "$") = 0 Then
                     RegxReplacer = replaceStr
                 Else
@@ -159,6 +159,7 @@ Private Function RegxReplacer(sourcestr As String, regPattern As String, Optiona
     End If
     
 End Function
+
 
 
 

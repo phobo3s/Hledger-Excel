@@ -81,11 +81,11 @@ End If
 ' in any Area.
 For Each Area In SearchRange.Areas
     With Area
-        If .Cells(.Cells.Count).Row > MaxRow Then
-            MaxRow = .Cells(.Cells.Count).Row
+        If .Cells(.Cells.count).Row > MaxRow Then
+            MaxRow = .Cells(.Cells.count).Row
         End If
-        If .Cells(.Cells.Count).Column > MaxCol Then
-            MaxCol = .Cells(.Cells.Count).Column
+        If .Cells(.Cells.count).Column > MaxCol Then
+            MaxCol = .Cells(.Cells.count).Column
         End If
     End With
 Next Area
@@ -215,8 +215,8 @@ If IsEmpty(InWorksheets) = True Then
     ' Empty. Search all sheets.
     ''''''''''''''''''''''''''''''''''''''''''
     With wb.Worksheets
-        ReDim WSArray(1 To .Count)
-        For WSNdx = 1 To .Count
+        ReDim WSArray(1 To .count)
+        For WSNdx = 1 To .count
             WSArray(WSNdx) = .item(WSNdx).name
         Next WSNdx
     End With
@@ -440,6 +440,8 @@ Next WSNdx
 FindAllOnWorksheets = resultRange
 
 End Function
+
+
 
 
 

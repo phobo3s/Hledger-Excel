@@ -334,7 +334,7 @@ Public Function CreateFromPath(ByVal sPath As String) As stdAcc
     'Loop over descendants
     Dim i As Integer
     For i = 0 To UBound(descendants)
-        If CLng(descendants(i)) > acc.children.Count Then Exit Function
+        If CLng(descendants(i)) > acc.children.count Then Exit Function
         Set acc = acc.children(CLng(descendants(i)))
     Next i
     
@@ -909,7 +909,7 @@ Public Function getPath(Optional toAccessible As stdAcc = Nothing) As String
     'Create path
     Dim path As String
     Dim i As Integer
-    For i = col.Count To 1 Step -1
+    For i = col.count To 1 Step -1
         path = path & "." & col(i)
     Next i
     
@@ -1250,6 +1250,8 @@ Private Function COMErrorDescription(ByVal code As Long) As String
     End If
     COMErrorDescription = pErrorCodes(Hex(code))
 End Function
+
+
 
 
 

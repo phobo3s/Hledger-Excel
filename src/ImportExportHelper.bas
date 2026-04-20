@@ -186,10 +186,10 @@ Public Sub CreateTemplateWorkbook()
         ElseIf ws.name = "Events" Or ws.name = "ExpenseAnalysis" Then
             ws.Delete
         ElseIf ws.name = "IMPORT" Then
-            lastRow = ws.UsedRange.Row + ws.UsedRange.Rows.Count - 1
+            lastRow = ws.UsedRange.Row + ws.UsedRange.Rows.count - 1
             If lastRow > 1 Then ws.Rows("5:" & lastRow).value = ""
         Else
-            lastRow = ws.UsedRange.Row + ws.UsedRange.Rows.Count - 1
+            lastRow = ws.UsedRange.Row + ws.UsedRange.Rows.count - 1
             If lastRow > 1 Then ws.Rows("2:" & lastRow).Delete
         End If
     Next ws
@@ -297,6 +297,8 @@ Private Function SheetByCode(wb As Workbook, codeName As String) As Worksheet
         If ws.codeName = codeName Then Set SheetByCode = ws: Exit Function
     Next ws
 End Function
+
+
 
 
 

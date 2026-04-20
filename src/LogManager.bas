@@ -89,7 +89,7 @@ Private Sub WriteToLogSheet(logEntry As String, level As String)
     End If
 
     ' Find next empty row
-    nextRow = logsSheet.Cells(logsSheet.Rows.Count, 1).End(xlUp).Row + 1
+    nextRow = logsSheet.Cells(logsSheet.Rows.count, 1).End(xlUp).Row + 1
 
     ' Write log entry
     With logsSheet
@@ -132,6 +132,7 @@ Public Sub InitializeLogging()
     LogInfo "Logging initialized"
     On Error GoTo 0
 End Sub
+
 
 
 

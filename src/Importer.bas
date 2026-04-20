@@ -29,21 +29,21 @@ Public Sub ImporterBegin()
         Set amountRange = Application.InputBox("Select amount columns first value", "Amount Column", , , , , , 8)
     End If
     ' Check selected Ranges
-    If datesRange.Cells.Count <> 1 Then GoTo WRONGDATACOUNT
-    If notesRange.Cells.Count <> 1 Then GoTo WRONGDATACOUNT
-    If amountRange.Cells.Count <> 1 Then GoTo WRONGDATACOUNT
+    If datesRange.Cells.count <> 1 Then GoTo WRONGDATACOUNT
+    If notesRange.Cells.count <> 1 Then GoTo WRONGDATACOUNT
+    If amountRange.Cells.count <> 1 Then GoTo WRONGDATACOUNT
     ' Resize selection to get data
     Set expenseCategoryRange = ws.Cells(amountRange.Row, Application.WorksheetFunction.max(datesRange.Column, notesRange.Column, amountRange.Column) + 1)
     Set specialCategoryRange = ws.Cells(amountRange.Row, Application.WorksheetFunction.max(datesRange.Column, notesRange.Column, amountRange.Column) + 2)
     Set bankDescRange = ws.Cells(amountRange.Row, Application.WorksheetFunction.max(datesRange.Column, notesRange.Column, amountRange.Column) + 3)
-    Set datesRange = datesRange.Resize(ws.Cells(ws.Rows.Count, datesRange.Column).End(xlUp).Row - datesRange.Row + 1, 1)
-    Set notesRange = notesRange.Resize(ws.Cells(ws.Rows.Count, notesRange.Column).End(xlUp).Row - notesRange.Row + 1, 1)
-    Set amountRange = amountRange.Resize(ws.Cells(ws.Rows.Count, amountRange.Column).End(xlUp).Row - amountRange.Row + 1, 1)
-    Set expenseCategoryRange = expenseCategoryRange.Resize(amountRange.Rows.Count, 1)
-    Set specialCategoryRange = specialCategoryRange.Resize(amountRange.Rows.Count, 1)
-    Set bankDescRange = bankDescRange.Resize(amountRange.Rows.Count, 1)
+    Set datesRange = datesRange.Resize(ws.Cells(ws.Rows.count, datesRange.Column).End(xlUp).Row - datesRange.Row + 1, 1)
+    Set notesRange = notesRange.Resize(ws.Cells(ws.Rows.count, notesRange.Column).End(xlUp).Row - notesRange.Row + 1, 1)
+    Set amountRange = amountRange.Resize(ws.Cells(ws.Rows.count, amountRange.Column).End(xlUp).Row - amountRange.Row + 1, 1)
+    Set expenseCategoryRange = expenseCategoryRange.Resize(amountRange.Rows.count, 1)
+    Set specialCategoryRange = specialCategoryRange.Resize(amountRange.Rows.count, 1)
+    Set bankDescRange = bankDescRange.Resize(amountRange.Rows.count, 1)
     ' Check data
-    If Not (datesRange.Cells.Count = notesRange.Cells.Count And datesRange.Cells.Count = amountRange.Cells.Count) Then GoTo WRONGDATACOUNT
+    If Not (datesRange.Cells.count = notesRange.Cells.count And datesRange.Cells.count = amountRange.Cells.count) Then GoTo WRONGDATACOUNT
     '*********************
     'check descriptions
     '*********************
@@ -54,11 +54,11 @@ Public Sub ImporterBegin()
     Load frmDescription
     
     ' >>> RULES PART
-    For i = datesRange.Rows.Count To 1 Step -1
+    For i = datesRange.Rows.count To 1 Step -1
         If expenseCategoryRange.Cells(i, 1).value = "" Then
             Set ruleCheckResult = New scripting.Dictionary
             Set ruleCheckResult = Rules.CheckRules(notesRange.Cells(i, 1).value, CDbl(amountRange.Cells(i, 1).value), targetWs.name)
-            If ruleCheckResult.Count <> 0 Then
+            If ruleCheckResult.count <> 0 Then
                 expenseCategoryRange.Cells(i, 1).value = ruleCheckResult("toAccount")
                 specialCategoryRange.Cells(i, 1).value = ruleCheckResult("special")
                 If ruleCheckResult("newDescription") <> "" Then notesRange.Cells(i, 1).value = ruleCheckResult("newDescription")
@@ -75,7 +75,7 @@ Public Sub ImporterBegin()
           vbYesNo + vbQuestion, "Importer") = vbNo Then Exit Sub
     
     ' >>> SAME SEARCHING PART
-    For i = datesRange.Rows.Count To 1 Step -1
+    For i = datesRange.Rows.count To 1 Step -1
         'Put bank description to the side
         If bankDescRange.Cells(i, 1).value = "" Then bankDescRange.Cells(i, 1).value = notesRange.Cells(i, 1).value
         'Check duplicates and fully entered records
@@ -95,7 +95,7 @@ Public Sub ImporterBegin()
                     frmSimilarSelector.lblAmount.Caption = amountRange.Cells(i, 1).value
                     frmSimilarSelector.lblDate.Caption = datesRange.Cells(i, 1).value
                     Dim tempArr() As Variant
-                    ReDim tempArr(foundRanges.Count - 1, 2)
+                    ReDim tempArr(foundRanges.count - 1, 2)
                     Dim rng As Variant
                     Dim j As Integer: j = 0
                     For Each rng In foundRanges
@@ -133,7 +133,7 @@ Public Sub ImporterBegin()
     '<<< SAME SEARCHING PART
        
     '>>> DUPLICATE FIND PART
-    For i = datesRange.Rows.Count To 1 Step -1
+    For i = datesRange.Rows.count To 1 Step -1
         If CheckDuplicate(datesRange.Cells(i, 1).value, CDbl(amountRange.Cells(i, 1).value), targetWs, CStr(bankDescRange.Cells(i, 1).value)) = 0 Then
             'unique record.
         Else
@@ -153,7 +153,7 @@ Public Sub ImporterBegin()
     '********************************
     Dim startRow As Long
     Dim reconcileNoteRow As Long
-    For i = datesRange.Rows.Count To 1 Step -1
+    For i = datesRange.Rows.count To 1 Step -1
         'REAL Check duplicates!
         If CheckDuplicate(datesRange.Cells(i, 1).value, CDbl(amountRange.Cells(i, 1).value), targetWs, CStr(bankDescRange.Cells(i, 1).value)) = 0 Then
         '            '> find start row for yourself
@@ -267,7 +267,7 @@ Private Function CheckDuplicate(chkDate As Variant, chkAmount As Double, targetW
     On Error GoTo 0
 
     Dim lastRow As Long
-    lastRow = targetWs.Cells(targetWs.Rows.Count, 1).End(xlUp).Row
+    lastRow = targetWs.Cells(targetWs.Rows.count, 1).End(xlUp).Row
     Dim i As Long
     For i = 2 To lastRow
         If targetWs.Cells(i, 1).value <> "" Then
@@ -302,7 +302,7 @@ Private Function CommodityCount(str As String) As Double
         .Pattern = "(\d+ Pay)|(x\d+.\d+)"
     End With
     Set result = oReg.Execute(str)
-    If result.Count = 1 Then
+    If result.count = 1 Then
         result = result(0).value
         If left(result, 1) = "x" Then
             result = CDbl(Replace(Replace(result, "x", ""), ".", ","))
@@ -320,6 +320,8 @@ End Function
 '===================================================
 '<< Find Commodity Count
 '===================================================
+
+
 
 
 

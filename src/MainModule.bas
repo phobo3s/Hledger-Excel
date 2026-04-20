@@ -98,17 +98,17 @@ End Function
 Private Sub AggregateAccounts(accountsArr As Variant)
 
     Dim lastRowNum As Long
-    lastRowNum = MAIN_LEDGER.Cells(MAIN_LEDGER.Rows.Count, 8).End(xlUp).Row
+    lastRowNum = MAIN_LEDGER.Cells(MAIN_LEDGER.Rows.count, 8).End(xlUp).Row
     If lastRowNum > 1 Then MAIN_LEDGER.Range("A2").Resize(lastRowNum - 1, 13).value = ""
     If lastRowNum > 1 Then MAIN_LEDGER.Range("A2").Resize(lastRowNum - 1, 13).Interior.ColorIndex = -4142
     Dim sh As Worksheet
     Dim i As Long
     For i = LBound(accountsArr) To UBound(accountsArr)
         Set sh = Application.ActiveWorkbook.Worksheets(accountsArr(i))
-        lastRowNum = sh.Cells(sh.Cells.Rows.Count, sh.Range("H2").Column).End(xlUp).Row
+        lastRowNum = sh.Cells(sh.Cells.Rows.count, sh.Range("H2").Column).End(xlUp).Row
         If lastRowNum <> 1 Then
             sh.Cells(2, 1).Resize(lastRowNum - 1, 13).Copy _
-            MAIN_LEDGER.Cells(MAIN_LEDGER.Cells(MAIN_LEDGER.Cells.Rows.Count, MAIN_LEDGER.Range("H2").Column).End(xlUp).Row + 1, 1)
+            MAIN_LEDGER.Cells(MAIN_LEDGER.Cells(MAIN_LEDGER.Cells.Rows.count, MAIN_LEDGER.Range("H2").Column).End(xlUp).Row + 1, 1)
         Else
         End If
     Next i
@@ -148,7 +148,7 @@ Private Sub ExportHledgerFile()
     Set Accountes = GetTransactionAccountNames
     ACCOUNTS.Cells.Clear
     For Each anAccount In Accountes
-        ACCOUNTS.Cells(ACCOUNTS.Rows.Count, 1).End(xlUp).offset(1, 0).value = anAccount
+        ACCOUNTS.Cells(ACCOUNTS.Rows.count, 1).End(xlUp).offset(1, 0).value = anAccount
     Next anAccount
     With ACCOUNTS.Sort
         .SetRange Range("A:A")
@@ -171,7 +171,7 @@ Private Sub ExportHledgerFile()
     Set commoditiees = GetTransactionCommodityNames
     COMMODITIES.Cells.Clear
     For Each aCommodity In commoditiees
-        COMMODITIES.Cells(COMMODITIES.Rows.Count, 1).End(xlUp).offset(1, 0).value = aCommodity
+        COMMODITIES.Cells(COMMODITIES.Rows.count, 1).End(xlUp).offset(1, 0).value = aCommodity
     Next aCommodity
     With COMMODITIES.Sort
         .SetRange Range("A:A")
@@ -225,7 +225,7 @@ Private Sub ExportHledgerFile()
     rowNum = 2
     With MAIN_LEDGER
         ' > get all data to array
-        lastDataRow = .Cells(.Rows.Count, accNameCol).End(xlUp).Row
+        lastDataRow = .Cells(.Rows.count, accNameCol).End(xlUp).Row
         dataArr = .UsedRange.value
        ' < get all data to array
         Do While rowNum <= UBound(dataArr, 1)
@@ -384,7 +384,7 @@ Private Sub ExportHledgerFile()
     '********************
     Dim commodityCommandsDictDates As Variant
     Set commodityCommandsDictDates = New scripting.Dictionary
-    For i = 0 To commodityCommandsDict.Count - 1
+    For i = 0 To commodityCommandsDict.count - 1
         line = commodityCommandsDict.keys(i)
         commodityCommandsDictDates.item(Split(line, "::")(0)) = Split(line, "::")(1)
     Next i
@@ -393,8 +393,8 @@ Private Sub ExportHledgerFile()
     fileNo = FreeFile
     Open Config.PORTFOLIO_CSV_PATH For Output As #fileNo 'Open file for overwriting! Replace Output with Append to append
     If Not writeCommands Is Nothing Then
-        For i = 0 To writeCommands.Count - 1
-            For Each tempLine In Split(writeCommands.Items(i), vbCrLf)
+        For i = 0 To writeCommands.count - 1
+            For Each tempLine In Split(writeCommands.items(i), vbCrLf)
                 Do While left(tempLine, 1) = " "
                     tempLine = Mid(tempLine, 2)
                 Loop
@@ -542,7 +542,7 @@ Private Sub ExportHledgerFile()
     Open Config.PORTFOLIO_CSV_PATH_INVESTING For Output As #fileNo 'Open file for overwriting! Replace Output with Append to append
     Dim stockObjSub As Variant
     Dim stockObjSubSub As Variant
-    If commDict.Count > 0 Then
+    If commDict.count > 0 Then
         For Each tempStockObj In commDict.keys
             For Each stockObjSub In commDict(tempStockObj).keys
                 For Each stockObjSubSub In commDict(tempStockObj)(stockObjSub).keys
@@ -569,8 +569,8 @@ Private Function ParseCommodities(ByRef commodityCommandsDict As Object) As Obje
 Dim command As Variant
 Dim i As Long
 Dim commandLineNum() As String
-If commodityCommandsDict.Count = 0 Then Exit Function
-ReDim commandLineNum(1 To commodityCommandsDict.Count)
+If commodityCommandsDict.count = 0 Then Exit Function
+ReDim commandLineNum(1 To commodityCommandsDict.count)
 
 Dim commands() As Variant
 commands = commodityCommandsDict.keys()
@@ -693,8 +693,8 @@ For i = UBound(commands) To LBound(commands) Step -1
                 'If commName = "TKM" Then Stop
                 If Abs(commQuantity) > buyedQuant Then
                     aStock(minDateStamp).Remove (minSameDayNumber)
-                    If aStock(minDateStamp).Count = 0 Then aStock.Remove (minDateStamp)
-                    If aStock.Count = 0 Then commDict.Remove (commName)
+                    If aStock(minDateStamp).count = 0 Then aStock.Remove (minDateStamp)
+                    If aStock.count = 0 Then commDict.Remove (commName)
                     writeCommands.item(commLineNum) = IIf(writeCommands.item(commLineNum) = "", "", writeCommands.item(commLineNum)) & _
                                                       "  -" & Abs(buyedQuant) & " " & commName & " @ " & _
                                                       Format(buyedPrice, "0.0###################################") & " " & _
@@ -709,8 +709,8 @@ For i = UBound(commands) To LBound(commands) Step -1
                     commQuantity = 0
                 Else
                     aStock(minDateStamp).Remove (minSameDayNumber)
-                    If aStock(minDateStamp).Count = 0 Then aStock.Remove (minDateStamp)
-                    If aStock.Count = 0 Then commDict.Remove (commName)
+                    If aStock(minDateStamp).count = 0 Then aStock.Remove (minDateStamp)
+                    If aStock.count = 0 Then commDict.Remove (commName)
                     writeCommands.item(commLineNum) = IIf(writeCommands.item(commLineNum) = "", "", writeCommands.item(commLineNum)) & _
                                                       "  -" & Abs(commQuantity) & " " & commName & " @ " & _
                                                       Format(buyedPrice, "0.0###################################") & " " & _
@@ -973,6 +973,8 @@ Private Function GetTransactionAccountNames() As Object
     Set GetTransactionAccountNames = accountDict
 
 End Function
+
+
 
 
 

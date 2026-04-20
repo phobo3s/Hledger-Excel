@@ -17,7 +17,7 @@ End Sub
 
 Private Sub RunHledgerCommand()
 
-    ActiveSheet.Cells(2, 2).EntireColumn.Resize(, ActiveSheet.Columns.Count - 2).value = ""
+    ActiveSheet.Cells(2, 2).EntireColumn.Resize(, ActiveSheet.Columns.count - 2).value = ""
     Dim cmdText As String
     cmdText = ActiveCell.value
     If cmdText = "" Then Exit Sub
@@ -74,7 +74,7 @@ Private Sub RunHledgerCommand()
             cll.offset(0, -1).value = "||"
             i = i + 1
         Loop While (cll <> "")
-        Set resultRange = ActiveSheet.Cells(2, 3).Resize(ActiveSheet.UsedRange.Rows.Count - 2, ActiveSheet.UsedRange.Columns.Count - 2)
+        Set resultRange = ActiveSheet.Cells(2, 3).Resize(ActiveSheet.UsedRange.Rows.count - 2, ActiveSheet.UsedRange.Columns.count - 2)
         For Each cll In resultRange
             If IsNumeric(cll.value) = True And cll.value <> "" Then cll.value = CDbl(cll.value)
             If IsNumeric(left(cll.value, 4)) = True And _
@@ -103,6 +103,8 @@ Private Function ConvertCharsToTurkish(str As String) As String
     ConvertCharsToTurkish = str
 
 End Function
+
+
 
 
 
