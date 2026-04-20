@@ -53,6 +53,11 @@ Public Sub ImporterBegin()
     Dim ruleCheckResult As scripting.Dictionary
     Load frmDescription
     
+    'Put bank description to the side
+    For i = datesRange.Rows.count To 1 Step -1
+        If bankDescRange.Cells(i, 1).value = "" Then bankDescRange.Cells(i, 1).value = notesRange.Cells(i, 1).value
+    Next i
+    
     ' >>> RULES PART
     For i = datesRange.Rows.count To 1 Step -1
         If expenseCategoryRange.Cells(i, 1).value = "" Then
@@ -76,8 +81,6 @@ Public Sub ImporterBegin()
     
     ' >>> SAME SEARCHING PART
     For i = datesRange.Rows.count To 1 Step -1
-        'Put bank description to the side
-        If bankDescRange.Cells(i, 1).value = "" Then bankDescRange.Cells(i, 1).value = notesRange.Cells(i, 1).value
         'Check duplicates and fully entered records
             If CheckDuplicate(datesRange.Cells(i, 1).value, CDbl(amountRange.Cells(i, 1).value), targetWs, CStr(bankDescRange.Cells(i, 1).value)) = 0 And _
                                                                         (expenseCategoryRange.Cells(i, 1).value = "" Or _
