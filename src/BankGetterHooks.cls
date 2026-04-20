@@ -30,6 +30,7 @@ Public Sub Hook_TEB_FetchAccounts(chrome As stdChrome, p1 As String, p2 As Strin
     Dim q As Integer, i As Integer, j As Integer, k As Integer
 
     With chrome
+        .accMain.PrintDescTexts
         For q = 1 To accountCount
             Set detailsLinks = Nothing
             Call .AwaitForAccElement(stdLambda.Create("$1.Name like ""Detay"" and $1.Role = ""ROLE_LINK"""))
