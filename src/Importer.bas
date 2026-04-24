@@ -1,4 +1,4 @@
-﻿Attribute VB_Name = "Importer"
+Attribute VB_Name = "Importer"
 Option Explicit
 
 Public Sub ImporterBegin()
