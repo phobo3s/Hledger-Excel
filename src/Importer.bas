@@ -1,4 +1,4 @@
-Attribute VB_Name = "Importer"
+﻿Attribute VB_Name = "Importer"
 Option Explicit
 
 Public Sub ImporterBegin()
@@ -82,9 +82,9 @@ Public Sub ImporterBegin()
     ' >>> SAME SEARCHING PART
     For i = datesRange.Rows.count To 1 Step -1
         'Check duplicates and fully entered records
-            If CheckDuplicate(datesRange.Cells(i, 1).value, CDbl(amountRange.Cells(i, 1).value), targetWs, CStr(bankDescRange.Cells(i, 1).value)) = 0 And _
+            If CheckDuplicate(datesRange.Cells(i, 1).value, CDbl(amountRange.Cells(i, 1).value), targetWs) = 0 And _
                                                                         (expenseCategoryRange.Cells(i, 1).value = "" Or _
-                                                                        expenseCategoryRange.Cells(i, 1).value = "Gider:Bilinmeyen") Then
+                                                                        expenseCategoryRange.Cells(i, 1).value = "Gider:Bilinmeyen") Then 'CStr(bankDescRange.Cells(i, 1).value)
             'SAME SEARCHING
             If expenseCategoryRange.Cells(i, 1).value = "" Or expenseCategoryRange.Cells(i, 1).value = "Gider:Bilinmeyen" Then
                 Set foundDescRange = Nothing
@@ -137,7 +137,7 @@ Public Sub ImporterBegin()
        
     '>>> DUPLICATE FIND PART
     For i = datesRange.Rows.count To 1 Step -1
-        If CheckDuplicate(datesRange.Cells(i, 1).value, CDbl(amountRange.Cells(i, 1).value), targetWs, CStr(bankDescRange.Cells(i, 1).value)) = 0 Then
+        If CheckDuplicate(datesRange.Cells(i, 1).value, CDbl(amountRange.Cells(i, 1).value), targetWs) = 0 Then 'CStr(bankDescRange.Cells(i, 1).value)
             'unique record.
         Else
             'duplicate entry found
@@ -158,7 +158,7 @@ Public Sub ImporterBegin()
     Dim reconcileNoteRow As Long
     For i = datesRange.Rows.count To 1 Step -1
         'REAL Check duplicates!
-        If CheckDuplicate(datesRange.Cells(i, 1).value, CDbl(amountRange.Cells(i, 1).value), targetWs, CStr(bankDescRange.Cells(i, 1).value)) = 0 Then
+        If CheckDuplicate(datesRange.Cells(i, 1).value, CDbl(amountRange.Cells(i, 1).value), targetWs) = 0 Then ', CStr(bankDescRange.Cells(i, 1).value)
         '            '> find start row for yourself
             startRow = 2 'by default it is 2
             Do Until datesRange.Cells(i, 1).value >= targetWs.Cells(startRow, 1).value And targetWs.Cells(startRow, 1).value <> ""
@@ -323,6 +323,10 @@ End Function
 '===================================================
 '<< Find Commodity Count
 '===================================================
+
+
+
+
 
 
 

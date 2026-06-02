@@ -83,6 +83,7 @@ Private Sub BankGetter_FetchAccounts(chrome As stdChrome)
             Call .AwaitForAccElement(stdLambda.Create("$1.Name like ""Hesap " & ChrW(304) & ChrW(351) & "lemleri"" and $1.Role = ""ROLE_LINK""")).DoDefaultAction
             Call .AwaitForAccElement(stdLambda.Create("$1.Name like ""Hesap Hareketleri"" and $1.Role = ""ROLE_LINK""")).DoDefaultAction
             Call .AwaitForAccElement(stdLambda.Create("$1.Name like ""1 Ay"" and $1.Role = ""ROLE_LINK""")).DoDefaultAction
+            'Call .AwaitForAccElement(stdLambda.Create("$1.Name like ""6 Ay"" and $1.Role = ""ROLE_LINK""")).DoDefaultAction
             Call .AwaitForAccElement(stdLambda.Create("$1.Description like ""Showing * entries"" and $1.Role = ""ROLE_TABLE"""))
 
             skipLineCount = 1
@@ -148,6 +149,7 @@ Private Sub BankGetter_FetchInvestments(chrome As stdChrome)
         Call .AwaitForAccElement(stdLambda.Create("$1.Name = ""Tarih Aral" & ChrW(305) & ChrW(287) & "" & ChrW(305) & """ and $1.Role = ""ROLE_STATICTEXT"""))
 
         dateStr2 = Replace(CStr(Date - 31), ".", "/")
+        'dateStr2 = Replace(CStr(Date - 200), ".", "/")
         If Len(dateStr2) = 9 Then dateStr2 = "0" & dateStr2
 
         Call .AwaitForAccElement(stdLambda.Create("$1.Name = ""..."" and $1.Role = ""ROLE_PUSHBUTTON""")).DoDefaultAction
@@ -363,5 +365,9 @@ Private Function CastMonthName(monthNum As Integer) As String
                           "Eylül", "Ekim", _
                           "Kasım", "Aralık")(monthNum - 1)
 End Function
+
+
+
+
 
 
