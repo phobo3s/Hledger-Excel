@@ -1,0 +1,31 @@
+# -----------------------------------------------
+# Kisisel finansal veriler -- asla commit edilmez
+# -----------------------------------------------
+*.hledger
+*.journal
+*.ledger
+*.csv
+*.txt
+.claude
+
+# -----------------------------------------------
+# Excel binary -- sayfa ici kisisel veri barindirir
+# -----------------------------------------------
+*.xlsm
+*.xlsx
+*.xls
+*.xlam
+
+# Excel gecici/kilit dosyalari
+~$*
+
+# -----------------------------------------------
+# src/ klasoru TRACK EDILIR (.bas/.cls/.frm vb.)
+# -----------------------------------------------
+!src/
+
+# -----------------------------------------------
+# Windows
+# -----------------------------------------------
+Thumbs.db
+desktop.ini
